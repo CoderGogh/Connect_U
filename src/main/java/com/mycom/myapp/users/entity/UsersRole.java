@@ -30,6 +30,7 @@ public class UsersRole {
     private UsersRole(Users users, Role role) {
         this.id = new UsersRoleKey(users.getUserId(), role.getRoleId());
         this.users = users;
+        this.users.getUsersRoles().add(this); // 양방향 매핑
         this.role = role;
         this.isDeleted = false;
     }

@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -31,6 +32,9 @@ public class Users {
     @Column(nullable = false, columnDefinition = "tinyint(1)")
     private Boolean isDeleted;
     private LocalDateTime deletedAt;
+
+    @OneToMany(mappedBy = "users")
+    private List<UsersRole> usersRoles;
 
     @Builder
     public Users(@NonNull String email, @NonNull String password, @NonNull String nickname, String description, String imageKey) {
