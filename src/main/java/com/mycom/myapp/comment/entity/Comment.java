@@ -1,10 +1,11 @@
-package com.mycom.myapp.post.entity;
+package com.mycom.myapp.comment.entity;
 
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.mycom.myapp.post.entity.Post;
 import com.mycom.myapp.users.entity.Users;
 
 import jakarta.persistence.Column;
@@ -24,29 +25,39 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "post")
+@Table(name = "comment")
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Post {
+public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "post_id")
+    @Column(name = "comment_id")
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id", nullable = false)
+    @ToString.Exclude
+    private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id", nullable = false)
     @ToString.Exclude
     private Users users;
 
+    // 부모 댓글 (대댓글이 아닐 경우 null)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_comment_id")
+    @ToString.Exclude
+    private Comment parentComment;
 
-    @Column(name = "title", length = 255, nullable = false)
-    private String title;
-
-    @Column(name = "content", columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "TEXT")
     private String content;
+
+    @Column(name = "child_count", nullable = false)
+    private Integer childCount;
 
     @Column(name = "like_count", nullable = false)
     private Integer likeCount;
@@ -66,14 +77,14 @@ public class Post {
     private LocalDateTime deletedAt;
     
     
-    
     @Builder
-    public Post(Users users, String title, String content) {
+    public Comment(Post post, Users users, Comment parentComment, String content) {
+        this.post = post;
         this.users = users;
-        this.title = title;
+        this.parentComment = parentComment;
         this.content = content;
 
-        // 기본값 설정
+        this.childCount = 0;
         this.likeCount = 0;
         this.isDeleted = false;
     }
