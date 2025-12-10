@@ -40,7 +40,3 @@ out/
 # ENV files
 src/main/java/com/mycom/myapp/env/
 *.env
-*.properties
-*.yml
-*.yaml
-
