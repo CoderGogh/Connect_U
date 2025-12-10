@@ -2,14 +2,15 @@ package com.mycom.myapp.users.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
 public class Role {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer roleId;
@@ -17,9 +18,7 @@ public class Role {
     private String name;
     @Column(nullable = false, columnDefinition = "tinyint(1)")
     private Boolean isDeleted;
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime deletedAt;
 
     private Role(String name) {
         this.name = name;
