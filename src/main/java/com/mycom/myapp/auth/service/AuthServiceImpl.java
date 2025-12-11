@@ -21,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +59,7 @@ public class AuthServiceImpl implements AuthService {
      * @return JoinResponseDto
      */
     @Override
+    @Transactional
     public JoinResponseDto join(JoinRequestDto dto) {
         String encodedPassword = bCryptPasswordEncoder.encode(dto.getPassword());
         Users users = Users.builder()
