@@ -16,6 +16,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -35,10 +36,9 @@ public class CommentLike {
     @MapsId("usersId")
     private Users users;
 
-    @Column(nullable = false, columnDefinition = "tinyint(1)")
-    private Boolean isDeleted;
-
-    private LocalDateTime deletedAt;
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     private CommentLike(Comment comment, Users users) {
 
@@ -50,7 +50,6 @@ public class CommentLike {
 
         this.comment = comment;
         this.users = users;
-        this.isDeleted = false;
     }
 
     public static CommentLike of(@NonNull Comment comment, @NonNull Users users) {
