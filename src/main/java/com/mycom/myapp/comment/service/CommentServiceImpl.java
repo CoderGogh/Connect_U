@@ -1,6 +1,8 @@
 package com.mycom.myapp.comment.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -9,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.mycom.myapp.comment.dto.CommentCreateRequestDto;
 import com.mycom.myapp.comment.dto.CommentResponseDto;
+import com.mycom.myapp.comment.dto.CommentTreeResponseDto;
 import com.mycom.myapp.comment.entity.Comment;
 import com.mycom.myapp.comment.like.entity.CommentLike;
 import com.mycom.myapp.comment.like.repository.CommentLikeRepository;
@@ -25,107 +28,192 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class CommentServiceImpl implements CommentService {
 
-	private final CommentRepository commentRepository;
-	private final PostRepository postRepository;
-	private final UsersRepository usersRepository;
-	private final CommentLikeRepository commentLikeRepository;
+    private final CommentRepository commentRepository;
+    private final PostRepository postRepository;
+    private final UsersRepository usersRepository;
+    private final CommentLikeRepository commentLikeRepository;
 
-	private CommentResponseDto convertToDto(Comment comment) {
-		return convertToDto(comment, false);
-	}
 
-	@Override
-	public CommentResponseDto createComment(CommentCreateRequestDto dto, Integer userId) {
+ 
+    @Override
+    public CommentResponseDto createComment(CommentCreateRequestDto dto, Integer userId) {
 
-		Post post = postRepository.findById(dto.getPostId()).orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+        Post post = postRepository.findById(dto.getPostId())
+                .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
 
-		Users user = usersRepository.findById(userId).orElseThrow(() -> new RuntimeException("사용자가 존재하지 않습니다."));
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자가 존재하지 않습니다."));
 
-		Comment parent = null;
-		if (dto.getParentCommentId() != null) {
-			parent = commentRepository.findById(dto.getParentCommentId())
-					.orElseThrow(() -> new RuntimeException("부모 댓글이 존재하지 않습니다."));
-			parent.increaseChildCount();
-		}
+        Comment parent = null;
+        if (dto.getParentCommentId() != null) {
+            parent = commentRepository.findById(dto.getParentCommentId())
+                    .orElseThrow(() -> new RuntimeException("부모 댓글이 존재하지 않습니다."));
+            parent.increaseChildCount();
+        }
 
-		Comment comment = Comment.builder().post(post).users(user).parentComment(parent).content(dto.getContent())
-				.build();
+        Comment comment = Comment.builder()
+                .post(post)
+                .users(user)
+                .parentComment(parent)
+                .content(dto.getContent())
+                .build();
 
-		Comment saved = commentRepository.save(comment);
+        Comment saved = commentRepository.save(comment);
 
-		return convertToDto(saved);
-	}
+        return convertToDto(saved, false);
+    }
 
-	@Override
-	public List<CommentResponseDto> getCommentsByPost(Integer postId, Integer userId) {
 
-		Post post = postRepository.findById(postId).orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+    @Override
+    public List<CommentTreeResponseDto> getCommentsByPost(Integer postId, Integer userId) {
 
-		// 1. 게시글의 모든 댓글 조회
-		List<Comment> comments = commentRepository.findByPostAndIsDeletedFalseOrderByCreatedAtAsc(post);
+        // 1) 게시글 확인
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
 
-		// 댓글 ID 목록 추출
-		List<Integer> commentIds = comments.stream().map(Comment::getId).toList();
+        // 2) 게시글의 모든 댓글 조회
+        List<Comment> comments = commentRepository
+                .findByPostAndIsDeletedFalseOrderByCreatedAtAsc(post);
 
-		// 2. 현재 유저가 좋아요 누른 댓글 목록 조회
-		// repository에 아래 메서드 필요:
-		// List<CommentLike> findByIdUsersIdAndIdCommentIdIn(Integer userId,
-		// List<Integer> commentIds);
-		List<CommentLike> likes = commentLikeRepository.findByIdUsersIdAndIdCommentIdIn(userId, commentIds);
+        // 댓글 ID 목록
+        List<Integer> commentIds = comments.stream()
+                .map(Comment::getId)
+                .toList();
 
-		// 좋아요 누른 댓글 ID set으로 변환
-		Set<Integer> likedCommentIdSet = likes.stream().map(like -> like.getComment().getId())
-				.collect(Collectors.toSet());
+        // 3) 좋아요 여부 조회 (현재 로그인 유저 기준)
+        List<CommentLike> likes = commentLikeRepository
+                .findByIdUsersIdAndIdCommentIdIn(userId, commentIds);
 
-		// 3. 댓글 + isLiked 포함한 DTO 반환
-		return comments.stream().map(comment -> convertToDto(comment, likedCommentIdSet.contains(comment.getId())))
-				.toList();
-	}
+        Set<Integer> likedCommentIdSet = likes.stream()
+                .map(like -> like.getComment().getId())
+                .collect(Collectors.toSet());
 
-	@Override
-	public CommentResponseDto updateComment(Integer commentId, String content, Integer userId) {
+        // 4) 트리 구조로 변환
+        return buildTree(comments, likedCommentIdSet);
+    }
 
-		Comment comment = commentRepository.findById(commentId)
-				.orElseThrow(() -> new RuntimeException("댓글이 존재하지 않습니다."));
 
-		if (!comment.getUsers().getUsersId().equals(userId)) {
-			throw new RuntimeException("작성자만 수정 가능합니다.");
-		}
+    @Override
+    public CommentResponseDto updateComment(Integer commentId, String content, Integer userId) {
 
-		comment.updateContent(content);
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("댓글이 존재하지 않습니다."));
 
-		return convertToDto(comment);
-	}
+        if (!comment.getUsers().getUsersId().equals(userId)) {
+            throw new RuntimeException("작성자만 수정 가능합니다.");
+        }
 
-	@Override
-	public void deleteComment(Integer commentId, Integer userId) {
+        comment.updateContent(content);
 
-		Comment comment = commentRepository.findById(commentId)
-				.orElseThrow(() -> new RuntimeException("댓글이 존재하지 않습니다."));
+        return convertToDto(comment, false);
+    }
 
-		if (!comment.getUsers().getUsersId().equals(userId)) {
-			throw new RuntimeException("작성자만 삭제 가능합니다.");
-		}
+    @Override
+    public void deleteComment(Integer commentId, Integer userId) {
 
-		// soft delete
-		comment.softDelete();
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("댓글이 존재하지 않습니다."));
 
-		// 부모 댓글이면 childCount 감소
-		if (comment.getParentComment() != null) {
-			Comment parent = comment.getParentComment();
-			parent.decreaseChildCount();
-		}
-	}
+        if (!comment.getUsers().getUsersId().equals(userId)) {
+            throw new RuntimeException("작성자만 삭제 가능합니다.");
+        }
 
-	private CommentResponseDto convertToDto(Comment comment, boolean isLiked) {
+        // soft delete
+        comment.softDelete();
 
-		return CommentResponseDto.builder().id(comment.getId()).content(comment.getContent())
-				.likeCount(comment.getLikeCount()).childCount(comment.getChildCount()).createdAt(comment.getCreatedAt())
-				.updatedAt(comment.getUpdatedAt()).isDeleted(comment.getIsDeleted()).deletedAt(comment.getDeletedAt())
-				.userId(comment.getUsers().getUsersId()).username(comment.getUsers().getNickname())
-				.parentCommentId(comment.getParentComment() != null ? comment.getParentComment().getId() : null)
-				.isLiked(isLiked) // ★ 여기
-				.build();
-	}
+        // 부모 댓글이면 childCount 감소
+        if (comment.getParentComment() != null) {
+            Comment parent = comment.getParentComment();
+            parent.decreaseChildCount();
+        }
+    }
+
+
+    private CommentResponseDto convertToDto(Comment comment, boolean isLiked) {
+
+        return CommentResponseDto.builder()
+                .id(comment.getId())
+                .content(comment.getContent())
+                .likeCount(comment.getLikeCount())
+                .childCount(comment.getChildCount())
+                .createdAt(comment.getCreatedAt())
+                .updatedAt(comment.getUpdatedAt())
+                .isDeleted(comment.getIsDeleted())
+                .deletedAt(comment.getDeletedAt())
+                .userId(comment.getUsers().getUsersId())
+                .username(comment.getUsers().getNickname())
+                .parentCommentId(
+                        comment.getParentComment() != null ?
+                                comment.getParentComment().getId() : null
+                )
+                .isLiked(isLiked)
+                .build();
+    }
+
+
+    //         TREE DTO 생성
+    private CommentTreeResponseDto toTreeDto(Comment comment, boolean isLiked) {
+
+        return CommentTreeResponseDto.builder()
+                .id(comment.getId())
+                .content(comment.getContent())
+                .likeCount(comment.getLikeCount())
+                .childCount(comment.getChildCount())
+                .isDeleted(comment.getIsDeleted())
+                .deletedAt(comment.getDeletedAt())
+                .createdAt(comment.getCreatedAt())
+                .updatedAt(comment.getUpdatedAt())
+                .userId(comment.getUsers().getUsersId())
+                .username(comment.getUsers().getNickname())
+                .parentCommentId(
+                        comment.getParentComment() != null ?
+                                comment.getParentComment().getId() : null
+                )
+                .isLiked(isLiked)
+                .children(new ArrayList<>())
+                .build();
+    }
+
+
+    //     BUILD TREE STRUCTURE
+    private List<CommentTreeResponseDto> buildTree(
+            List<Comment> comments,
+            Set<Integer> likedCommentIdSet
+    ) {
+
+        // 1) 모든 댓글을 Tree DTO로 변환
+        List<CommentTreeResponseDto> dtoList = comments.stream()
+                .map(comment -> toTreeDto(
+                        comment,
+                        likedCommentIdSet.contains(comment.getId())
+                ))
+                .toList();
+
+        // 2) id → DTO 매핑
+        Map<Integer, CommentTreeResponseDto> dtoMap =
+                dtoList.stream().collect(Collectors.toMap(
+                        CommentTreeResponseDto::getId,
+                        dto -> dto
+                ));
+
+        // 3) 트리 구조 구성
+        List<CommentTreeResponseDto> roots = new ArrayList<>();
+
+        for (CommentTreeResponseDto dto : dtoList) {
+
+            Integer parentId = dto.getParentCommentId();
+
+            if (parentId == null) {
+                roots.add(dto);
+            } else {
+                CommentTreeResponseDto parent = dtoMap.get(parentId);
+                if (parent != null) {
+                    parent.getChildren().add(dto);
+                }
+            }
+        }
+
+        return roots;
+    }
 
 }

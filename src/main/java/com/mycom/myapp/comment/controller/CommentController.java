@@ -1,7 +1,10 @@
 package com.mycom.myapp.comment.controller;
 
+import java.util.List;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mycom.myapp.auth.details.CustomUserDetails;
 import com.mycom.myapp.comment.dto.CommentCreateRequestDto;
 import com.mycom.myapp.comment.dto.CommentResponseDto;
+import com.mycom.myapp.comment.dto.CommentTreeResponseDto;
 import com.mycom.myapp.comment.service.CommentService;
 
 import lombok.RequiredArgsConstructor;
@@ -23,7 +27,21 @@ import lombok.RequiredArgsConstructor;
 public class CommentController {
 
     private final CommentService commentService;
+    
+    // 댓글 + 대댓글 트리 조회
+    @GetMapping("/post/{postId}")
+    public List<CommentTreeResponseDto> getCommentsByPost(
+            @PathVariable Integer postId,
+            Authentication authentication
+    ) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Integer userId = userDetails.getId();
 
+        return commentService.getCommentsByPost(postId, userId);
+    }
+
+    
+    
     @PostMapping
     public CommentResponseDto createComment(
             @RequestBody CommentCreateRequestDto dto,
@@ -57,5 +75,8 @@ public class CommentController {
 
         commentService.deleteComment(commentId, userId);
     }
+    
+    
+   
 }
 
