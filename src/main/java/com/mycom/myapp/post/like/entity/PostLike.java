@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class PostLike {
 
     @EmbeddedId
-    private PostLikeKey id;
+    private PostLikeKey id = new PostLikeKey(); // 비어 있는 키 객체
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id", nullable = false)
@@ -37,6 +37,6 @@ public class PostLike {
     public PostLike(Users users, Post post) {
         this.users = users;
         this.post = post;
-        this.id = new PostLikeKey(users.getUserId(), post.getId());
     }
 }
+
