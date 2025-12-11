@@ -14,7 +14,7 @@ import java.util.List;
 @Getter
 public class Users {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer userId;
+    private Integer usersId;
     @Column(nullable = false, unique = true)
     private String email;
     @Column(nullable = false)
