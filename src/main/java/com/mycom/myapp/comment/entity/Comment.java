@@ -2,6 +2,7 @@ package com.mycom.myapp.comment.entity;
 
 import java.time.LocalDateTime;
 
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -17,12 +18,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 
 @Entity
 @Table(name = "comment")
@@ -53,7 +48,7 @@ public class Comment {
     @ToString.Exclude
     private Comment parentComment;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
     @Column(name = "child_count", nullable = false)
@@ -70,7 +65,7 @@ public class Comment {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "is_deleted", nullable = false)
+    @Column(name = "is_deleted", nullable = false, columnDefinition = "tinyint(1)")
     private Boolean isDeleted;
 
     @Column(name = "deleted_at")
@@ -78,7 +73,7 @@ public class Comment {
     
     
     @Builder
-    public Comment(Post post, Users users, Comment parentComment, String content) {
+    public Comment(@NonNull Post post, @NonNull Users users, @NonNull Comment parentComment, @NonNull String content) {
         this.post = post;
         this.users = users;
         this.parentComment = parentComment;

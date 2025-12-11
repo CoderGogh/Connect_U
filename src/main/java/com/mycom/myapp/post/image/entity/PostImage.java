@@ -29,13 +29,13 @@ public class PostImage {
     @Column(nullable = false)
     private Long volume;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "tinyint(1)")
     private Boolean isDeleted;
 
     private LocalDateTime deletedAt;
 
     @Builder
-    public PostImage(Post post, Integer seq, String imageKey, Long volume) {
+    public PostImage(@NonNull Post post, @NonNull Integer seq, @NonNull String imageKey, @NonNull Long volume) {
         this.post = post;
 
         // ERD 기준 PK = int → Integer 기반
