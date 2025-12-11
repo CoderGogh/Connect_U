@@ -48,7 +48,7 @@ public class SecurityConfig {
                     config.addAllowedMethod("*");
                     return config;
                 }))
-                .authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth          		
                         // 모든 GET, OPTIONS 요청은 누구나 허용
                         .requestMatchers(HttpMethod.GET, "/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
