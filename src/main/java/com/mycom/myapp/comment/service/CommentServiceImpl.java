@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +38,8 @@ public class CommentServiceImpl implements CommentService {
 
 
  
+       // 댓글 생성
+     
     @Override
     public CommentResponseDto createComment(CommentCreateRequestDto dto, Integer userId) {
 
@@ -64,34 +69,51 @@ public class CommentServiceImpl implements CommentService {
     }
 
 
+        //  댓글 페이징 + 트리 반환
+    
     @Override
-    public List<CommentTreeResponseDto> getCommentsByPost(Integer postId, Integer userId) {
+    public Page<CommentTreeResponseDto> getCommentsByPost(Integer postId, Integer userId, Pageable pageable) {
 
-        // 1) 게시글 확인
+        // 게시글 확인
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
 
-        // 2) 게시글의 모든 댓글 조회
-        List<Comment> comments = commentRepository
-                .findByPostAndIsDeletedFalseOrderByCreatedAtAsc(post);
+        // 부모 댓글 페이징
+        Page<Comment> parentPage = commentRepository
+                .findByPostAndParentCommentIsNullAndIsDeletedFalseOrderByCreatedAtAsc(post, pageable);
 
-        // 댓글 ID 목록
-        List<Integer> commentIds = comments.stream()
-                .map(Comment::getId)
-                .toList();
+        List<Comment> parentComments = parentPage.getContent();
 
-        // 3) 좋아요 여부 조회 (현재 로그인 유저 기준)
+        // 부모 댓글 ID → 자식 댓글 전체 조회
+        List<Integer> parentIds = parentComments.stream().map(Comment::getId).toList();
+
+        List<Comment> childComments = commentRepository.findByParentCommentIdIn(parentIds);
+
+        // 전체 댓글 ID 목록
+        List<Comment> allComments = new ArrayList<>();
+        allComments.addAll(parentComments);
+        allComments.addAll(childComments);
+
+        List<Integer> allIds = allComments.stream().map(Comment::getId).toList();
+
+        // 좋아요 조회
         List<CommentLike> likes = commentLikeRepository
-                .findByIdUsersIdAndIdCommentIdIn(userId, commentIds);
+                .findByIdUsersIdAndIdCommentIdIn(userId, allIds);
 
-        Set<Integer> likedCommentIdSet = likes.stream()
+        Set<Integer> likedSet = likes.stream()
                 .map(like -> like.getComment().getId())
                 .collect(Collectors.toSet());
 
-        // 4) 트리 구조로 변환
-        return buildTree(comments, likedCommentIdSet);
+        //  트리 구조 생성
+        List<CommentTreeResponseDto> tree = buildTree(allComments, likedSet);
+
+        //  페이징 형태로 반환
+        return new PageImpl<>(tree, pageable, parentPage.getTotalElements());
     }
 
+
+
+      //  댓글 수정
 
     @Override
     public CommentResponseDto updateComment(Integer commentId, String content, Integer userId) {
@@ -108,6 +130,9 @@ public class CommentServiceImpl implements CommentService {
         return convertToDto(comment, false);
     }
 
+
+    
+       //  댓글 삭제 (soft delete)      
     @Override
     public void deleteComment(Integer commentId, Integer userId) {
 
@@ -118,19 +143,18 @@ public class CommentServiceImpl implements CommentService {
             throw new RuntimeException("작성자만 삭제 가능합니다.");
         }
 
-        // soft delete
         comment.softDelete();
 
-        // 부모 댓글이면 childCount 감소
         if (comment.getParentComment() != null) {
-            Comment parent = comment.getParentComment();
-            parent.decreaseChildCount();
+            comment.getParentComment().decreaseChildCount();
         }
     }
 
 
-    private CommentResponseDto convertToDto(Comment comment, boolean isLiked) {
 
+        // 내부 공통 DTO 변환 (단건)
+ 
+    private CommentResponseDto convertToDto(Comment comment, boolean isLiked) {
         return CommentResponseDto.builder()
                 .id(comment.getId())
                 .content(comment.getContent())
@@ -149,11 +173,10 @@ public class CommentServiceImpl implements CommentService {
                 .isLiked(isLiked)
                 .build();
     }
-
-
-    //         TREE DTO 생성
-    private CommentTreeResponseDto toTreeDto(Comment comment, boolean isLiked) {
-
+   
+        // TREE DTO 생성
+      
+    private CommentTreeResponseDto convertToTreeDto(Comment comment, boolean isLiked) {
         return CommentTreeResponseDto.builder()
                 .id(comment.getId())
                 .content(comment.getContent())
@@ -165,48 +188,43 @@ public class CommentServiceImpl implements CommentService {
                 .updatedAt(comment.getUpdatedAt())
                 .userId(comment.getUsers().getUsersId())
                 .username(comment.getUsers().getNickname())
-                .parentCommentId(
-                        comment.getParentComment() != null ?
-                                comment.getParentComment().getId() : null
-                )
+                .parentCommentId(comment.getParentComment() != null ?
+                        comment.getParentComment().getId() : null)
                 .isLiked(isLiked)
                 .children(new ArrayList<>())
                 .build();
     }
 
 
-    //     BUILD TREE STRUCTURE
+
+      //   TREE 빌드
+    
     private List<CommentTreeResponseDto> buildTree(
             List<Comment> comments,
-            Set<Integer> likedCommentIdSet
+            Set<Integer> likedSet
     ) {
-
-        // 1) 모든 댓글을 Tree DTO로 변환
+        // 1) 모든 댓글 → Tree DTO 변환
         List<CommentTreeResponseDto> dtoList = comments.stream()
-                .map(comment -> toTreeDto(
-                        comment,
-                        likedCommentIdSet.contains(comment.getId())
-                ))
+                .map(c -> convertToTreeDto(c, likedSet.contains(c.getId())))
                 .toList();
 
-        // 2) id → DTO 매핑
-        Map<Integer, CommentTreeResponseDto> dtoMap =
-                dtoList.stream().collect(Collectors.toMap(
+        // 2) ID → DTO 매핑
+        Map<Integer, CommentTreeResponseDto> map = dtoList.stream()
+                .collect(Collectors.toMap(
                         CommentTreeResponseDto::getId,
                         dto -> dto
                 ));
 
-        // 3) 트리 구조 구성
+        // 3) 트리 구성
         List<CommentTreeResponseDto> roots = new ArrayList<>();
 
         for (CommentTreeResponseDto dto : dtoList) {
-
             Integer parentId = dto.getParentCommentId();
 
             if (parentId == null) {
                 roots.add(dto);
             } else {
-                CommentTreeResponseDto parent = dtoMap.get(parentId);
+                CommentTreeResponseDto parent = map.get(parentId);
                 if (parent != null) {
                     parent.getChildren().add(dto);
                 }
@@ -217,3 +235,4 @@ public class CommentServiceImpl implements CommentService {
     }
 
 }
+
