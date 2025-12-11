@@ -15,6 +15,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Getter
@@ -36,7 +37,8 @@ public class Follow {
 
     private String status;
 
-    @Column(nullable = false)
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     private Follow(@NonNull Users userSrc, @NonNull Users userDest) {
@@ -44,7 +46,6 @@ public class Follow {
         this.userDest = userDest;
 
         this.id = new FollowKey(userSrc.getUsersId(), userDest.getUsersId());
-        this.createdAt = LocalDateTime.now();
     }
 
     public static Follow of(@NonNull Users userSrc, @NonNull Users userDest) {
