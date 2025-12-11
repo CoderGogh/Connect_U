@@ -17,16 +17,16 @@ import java.time.LocalDateTime;
 public class PostLike {
 
     @EmbeddedId
-    private PostLikeKey id = new PostLikeKey(); // 비어 있는 키 객체
+    private PostLikeKey id = new PostLikeKey();  // 기본 빈 객체
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id", nullable = false)
-    @MapsId("usersId")
+    @MapsId("usersId")   // PostLikeKey.usersId 매핑
     private Users users;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
-    @MapsId("postId")
+    @MapsId("postId")    // PostLikeKey.postId 매핑
     private Post post;
 
     @CreationTimestamp
@@ -37,6 +37,11 @@ public class PostLike {
     public PostLike(Users users, Post post) {
         this.users = users;
         this.post = post;
+
+        // ERD 기반 PK 전부 int → Integer 통일
+        this.id = new PostLikeKey(
+                users.getUsersId(),   // Integer
+                post.getId()          // Integer
+        );
     }
 }
-

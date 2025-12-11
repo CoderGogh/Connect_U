@@ -43,7 +43,7 @@ public class Follow {
         this.userSrc = userSrc;
         this.userDest = userDest;
 
-        this.id = new FollowKey(userSrc.getUserId(), userDest.getUserId());
+        this.id = new FollowKey(userSrc.getUsersId(), userDest.getUsersId());
         this.createdAt = LocalDateTime.now();
     }
 
