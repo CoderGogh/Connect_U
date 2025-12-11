@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Getter
 public class CommentLikeKey implements Serializable {
 
-    private Long commentId;
+    private Integer commentId;
     private Integer usersId;
 
     @Override

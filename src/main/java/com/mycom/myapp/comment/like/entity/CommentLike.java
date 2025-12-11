@@ -5,7 +5,13 @@ import java.time.LocalDateTime;
 import com.mycom.myapp.comment.entity.Comment;
 import com.mycom.myapp.users.entity.Users;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,7 +41,13 @@ public class CommentLike {
     private LocalDateTime deletedAt;
 
     private CommentLike(Comment comment, Users users) {
-        this.id = new CommentLikeKey(comment.getId(), users.getUserId());
+
+        // ★ ERD 기준 모든 PK 타입 = int → Integer로 통일
+        this.id = new CommentLikeKey(
+                comment.getId(),          // Integer
+                users.getUsersId()        // Integer (수정 포인트!)
+        );
+
         this.comment = comment;
         this.users = users;
         this.isDeleted = false;
