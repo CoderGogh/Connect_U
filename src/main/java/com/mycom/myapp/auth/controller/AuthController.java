@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -39,5 +40,10 @@ public class AuthController {
     public ResponseEntity<Void> logout(HttpServletRequest request) throws ServletException {
         authService.logout(request);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/csrf") // 백엔드 개발 시 csrf 토큰 발급을 위한 임시 api 입니다.
+    public CsrfToken csrf(CsrfToken csrfToken) {
+        return csrfToken;
     }
 }

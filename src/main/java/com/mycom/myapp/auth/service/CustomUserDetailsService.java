@@ -1,5 +1,6 @@
 package com.mycom.myapp.auth.service;
 
+import com.mycom.myapp.auth.details.CustomUserDetails;
 import com.mycom.myapp.users.entity.Users;
 import com.mycom.myapp.users.repository.UsersRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,15 +26,14 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .map(usersRole -> new SimpleGrantedAuthority(usersRole.getRole().getName()))
                 .toList();
 
-        // UserDetails 생성 후 Return
-        return User
-                .withUsername(users.getNickname())
-                .password(users.getPassword())
+        // CustomUserDetails 생성 후 Return
+        return CustomUserDetails.builder()
+                .users(users)
                 .authorities(authorities)
-                .accountExpired(false)
-                .accountLocked(false)
-                .credentialsExpired(false)
-                .disabled(false)
+                .accountNonExpired(true)
+                .accountNonLocked(true)
+                .credentialsNonExpired(true)
+                .enabled(true)
                 .build();
     }
 }
