@@ -65,7 +65,7 @@ public class Comment {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "is_deleted", nullable = false)
+    @Column(name = "is_deleted", nullable = false, columnDefinition = "tinyint(1)")
     private Boolean isDeleted;
 
     @Column(name = "deleted_at")
