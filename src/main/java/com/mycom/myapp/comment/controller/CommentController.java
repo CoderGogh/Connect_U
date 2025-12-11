@@ -2,6 +2,9 @@ package com.mycom.myapp.comment.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,18 +32,20 @@ public class CommentController {
     private final CommentService commentService;
     
     // 댓글 + 대댓글 트리 조회
-    @GetMapping("/post/{postId}")
-    public List<CommentTreeResponseDto> getCommentsByPost(
+    @GetMapping("/{postId}")
+    public Page<CommentTreeResponseDto> getCommentsByPost(
             @PathVariable Integer postId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             Authentication authentication
     ) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         Integer userId = userDetails.getId();
 
-        return commentService.getCommentsByPost(postId, userId);
-    }
+        Pageable pageable = PageRequest.of(page, size);
 
-    
+        return commentService.getCommentsByPost(postId, userId, pageable);
+    }
     
     @PostMapping
     public CommentResponseDto createComment(
