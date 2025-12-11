@@ -19,5 +19,14 @@ public interface UsersRepository extends JpaRepository<Users, Integer> {
     """)
     Optional<Users> findByEmailForLogin(@Param("email") String email);
 
+    @Query("""
+    select u
+    from Users u
+    join fetch u.usersRoles ur
+    join fetch ur.role
+    where u.usersId = :usersId and u.isDeleted = false
+    """)
+    Optional<Users> findByIdJoinRole(@Param("usersId") Integer usersId);
+
     boolean existsByEmail(String email);
 }
