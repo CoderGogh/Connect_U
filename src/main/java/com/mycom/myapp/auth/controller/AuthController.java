@@ -1,6 +1,7 @@
 package com.mycom.myapp.auth.controller;
 
 import com.mycom.myapp.auth.dto.JoinRequestDto;
+import com.mycom.myapp.auth.dto.JoinResponseDto;
 import com.mycom.myapp.auth.dto.LoginRequestDto;
 import com.mycom.myapp.auth.dto.LoginResponseDto;
 import com.mycom.myapp.auth.service.AuthService;
@@ -23,7 +24,13 @@ public class AuthController {
     }
 
     @PostMapping("/join")
-    public ResponseEntity<Integer> join(@RequestBody @Valid JoinRequestDto dto) {
+    public ResponseEntity<JoinResponseDto> join(@RequestBody @Valid JoinRequestDto dto) {
         return ResponseEntity.ok().body(authService.join(dto));
+    }
+
+    @GetMapping("/check-email/{email}")
+    public ResponseEntity<Void> checkEmail(@PathVariable String email) {
+        authService.checkEmailDup(email);
+        return ResponseEntity.ok().build();
     }
 }

@@ -1,6 +1,7 @@
 package com.mycom.myapp.auth.service;
 
 import com.mycom.myapp.auth.dto.JoinRequestDto;
+import com.mycom.myapp.auth.dto.JoinResponseDto;
 import com.mycom.myapp.auth.dto.LoginRequestDto;
 import com.mycom.myapp.auth.dto.LoginResponseDto;
 import com.mycom.myapp.users.entity.Role;
@@ -51,10 +52,10 @@ public class AuthService {
 
     /**
      * 회원가입
-     * @param dto
-     * @return 이미지를 업로드하는 경우를 위해 회원 식별자 반환
+     * @param dto JoinRequestDto
+     * @return JoinResponseDto
      */
-    public Integer join(JoinRequestDto dto) {
+    public JoinResponseDto join(JoinRequestDto dto) {
         String encodedPassword = bCryptPasswordEncoder.encode(dto.getPassword());
         Users users = Users.builder()
                 .email(dto.getEmail())
@@ -67,15 +68,19 @@ public class AuthService {
         Role role = roleRepository.findByName("ROLE_USER").orElseThrow(() ->
                 new RuntimeException("Role Not Found"));
         usersRoleRepository.save(UsersRole.usersRoleof(users, role));
-        return users.getUserId();
+        JoinResponseDto responseDto = new JoinResponseDto();
+        responseDto.setUsersId(users.getUsersId());
+        return responseDto;
     }
 
     /**
      * 이메일 중복 여부 검증
      * @param email 검증하려는 이메일
-     * @return true: 사용 가능한 이메일, false: 이미 사용중인 이메일(사용불가)
+     * @throws RuntimeException 이메일 중복 시 예외 발생
      */
-    public boolean checkEmailDup(String email) {
-        return !usersRepository.existsByEmail(email);
+    public void checkEmailDup(String email) {
+        if(usersRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email Already Exists");
+        }
     }
 }
