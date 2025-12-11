@@ -5,6 +5,7 @@ import com.mycom.myapp.auth.dto.JoinResponseDto;
 import com.mycom.myapp.auth.dto.LoginRequestDto;
 import com.mycom.myapp.auth.dto.LoginResponseDto;
 import com.mycom.myapp.auth.service.AuthService;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,12 @@ public class AuthController {
     @GetMapping("/check-email/{email}")
     public ResponseEntity<Void> checkEmail(@PathVariable String email) {
         authService.checkEmailDup(email);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request) throws ServletException {
+        authService.logout(request);
         return ResponseEntity.ok().build();
     }
 }

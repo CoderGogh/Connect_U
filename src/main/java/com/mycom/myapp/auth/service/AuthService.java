@@ -10,6 +10,7 @@ import com.mycom.myapp.users.entity.UsersRole;
 import com.mycom.myapp.users.repository.RoleRepository;
 import com.mycom.myapp.users.repository.UsersRepository;
 import com.mycom.myapp.users.repository.UsersRoleRepository;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -82,5 +83,14 @@ public class AuthService {
         if(usersRepository.existsByEmail(email)) {
             throw new RuntimeException("Email Already Exists");
         }
+    }
+
+    /**
+     * 로그아웃(스프링 시큐리티 표준 로그아웃 로직 호출)
+     * @param request HttpServletRequest
+     * @throws ServletException
+     */
+    public void logout(HttpServletRequest request) throws ServletException {
+        request.logout();
     }
 }
