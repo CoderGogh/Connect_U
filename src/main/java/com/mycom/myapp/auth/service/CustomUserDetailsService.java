@@ -27,7 +27,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         // UserDetails 생성 후 Return
         return User
-                .withUsername(users.getEmail())
+                .withUsername(users.getNickname())
                 .password(users.getPassword())
                 .authorities(authorities)
                 .accountExpired(false)

@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -34,15 +35,14 @@ public class Users {
     private LocalDateTime deletedAt;
 
     @OneToMany(mappedBy = "users")
-    private List<UsersRole> usersRoles;
+    private List<UsersRole> usersRoles = new ArrayList<>();
 
     @Builder
-    public Users(@NonNull String email, @NonNull String password, @NonNull String nickname, String description, String imageKey) {
+    public Users(@NonNull String email, @NonNull String password, @NonNull String nickname, String description) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
         this.description = description;
-        this.imageKey = imageKey;
         this.isDeleted = false;
     }
 }
