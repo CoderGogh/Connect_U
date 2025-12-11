@@ -29,4 +29,11 @@ public class UsersService {
                 new RuntimeException("User Not Found"));
         return toUsersResponseDto(users);
     }
+
+    public void quit(Integer usersId) {
+        Users users = usersRepository.findById(usersId).orElseThrow(() ->
+                new RuntimeException("User Not Found"));
+        users.setDelete();
+        usersRepository.save(users);
+    }
 }

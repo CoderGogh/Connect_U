@@ -6,10 +6,7 @@ import com.mycom.myapp.users.service.UsersService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,5 +22,11 @@ public class UsersController {
     @GetMapping("/my-info")
     public ResponseEntity<UsersResponseDto> getMyInfo(@AuthenticationPrincipal CustomUserDetails principal) {
         return ResponseEntity.ok(usersService.getUsersById(principal.getId()));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> quit(@AuthenticationPrincipal CustomUserDetails principal) {
+        usersService.quit(principal.getId());
+        return ResponseEntity.ok().build();
     }
 }

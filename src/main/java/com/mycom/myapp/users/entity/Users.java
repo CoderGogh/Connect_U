@@ -45,4 +45,9 @@ public class Users {
         this.description = description;
         this.isDeleted = false;
     }
+
+    public void setDelete() {
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
+    }
 }
