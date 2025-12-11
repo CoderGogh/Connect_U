@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class PostLikeKey implements Serializable {
 
     private Integer usersId;
-    private Long postId;
+    private Integer postId;
 
     @Override
     public boolean equals(Object o) {

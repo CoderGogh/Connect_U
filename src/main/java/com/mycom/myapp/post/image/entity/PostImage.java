@@ -4,19 +4,8 @@ import java.time.LocalDateTime;
 
 import com.mycom.myapp.post.entity.Post;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "post_image")
@@ -30,12 +19,12 @@ public class PostImage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
-    @MapsId("postId") // PostImageKey.postId 와 매핑
+    @MapsId("postId") // Integer 기반으로 매핑됨
     @ToString.Exclude
     private Post post;
 
-    @Column(name = "key", nullable = false, length = 255)
-    private String key;
+    @Column(name = "image_key", nullable = false, length = 255)
+    private String imageKey;
 
     @Column(name = "volume", nullable = false)
     private Long volume;
@@ -47,10 +36,10 @@ public class PostImage {
     private LocalDateTime deletedAt;
 
     @Builder
-    public PostImage(Post post, Integer seq, String key, Long volume) {
+    public PostImage(Post post, Integer seq, String imageKey, Long volume) {
         this.post = post;
-        this.id = new PostImageKey(post.getId().intValue(), seq);
-        this.key = key;
+        this.id = new PostImageKey(post.getId(), seq); // 변경됨
+        this.imageKey = imageKey;
         this.volume = volume;
         this.isDeleted = false;
     }
