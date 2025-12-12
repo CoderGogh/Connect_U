@@ -1,39 +1,16 @@
 package com.mycom.myapp.users.service;
 
+import com.mycom.myapp.users.dto.UsersListResponseDto;
+import com.mycom.myapp.users.dto.UsersRequestDto;
 import com.mycom.myapp.users.dto.UsersResponseDto;
-import com.mycom.myapp.users.entity.Users;
-import com.mycom.myapp.users.repository.UsersRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
 
-@Service
-@RequiredArgsConstructor
-public class UsersService {
-    private final UsersRepository usersRepository;
+import java.util.List;
 
-    private UsersResponseDto toUsersResponseDto(Users users) {
-        UsersResponseDto dto = new UsersResponseDto();
-        dto.setUsersId(users.getUsersId());
-        dto.setEmail(users.getEmail());
-        dto.setDescription(users.getDescription());
-        dto.setImageKey(users.getImageKey());
-        dto.setNickname(users.getNickname());
-        dto.setCreatedAt(users.getCreatedAt());
-        dto.setUpdatedAt(users.getUpdatedAt());
-        dto.setRoles(users.getUsersRoles().stream().map(ur -> ur.getRole().getName()).toList());
-        return dto;
-    }
-
-    public UsersResponseDto getUsersById(Integer usersId) {
-        Users users = usersRepository.findByIdJoinRole(usersId).orElseThrow(() ->
-                new RuntimeException("User Not Found"));
-        return toUsersResponseDto(users);
-    }
-
-    public void quit(Integer usersId) {
-        Users users = usersRepository.findById(usersId).orElseThrow(() ->
-                new RuntimeException("User Not Found"));
-        users.setDelete();
-        usersRepository.save(users);
-    }
+public interface UsersService {
+    UsersResponseDto getUsersById(Integer usersId);
+    void quit(HttpServletRequest request, Integer usersId) throws ServletException;
+    void update(HttpServletRequest request, Integer usersId, UsersRequestDto dto) throws ServletException;
+    List<UsersListResponseDto> getUsersListByNickname(String nickname);
 }
