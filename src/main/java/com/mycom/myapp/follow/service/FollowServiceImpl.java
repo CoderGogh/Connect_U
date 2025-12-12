@@ -36,6 +36,9 @@ public class FollowServiceImpl implements FollowService {
 
     @Override
     public void follow(Integer usersId, Integer targetUsersId) {
+        if(usersId.equals(targetUsersId)) {
+            throw new RuntimeException("Cannot Follow Yourself");
+        }
         Users users = usersRepository.findByIdIsDeletedFalse(usersId).orElseThrow(() ->
                 new RuntimeException("User Not Found"));
         Users targetUsers = usersRepository.findByIdIsDeletedFalse(targetUsersId).orElseThrow(() ->
@@ -45,6 +48,9 @@ public class FollowServiceImpl implements FollowService {
 
     @Override
     public void unfollow(Integer usersId, Integer targetUsersId) {
+        if(usersId.equals(targetUsersId)) {
+            throw new RuntimeException("Cannot Follow Yourself");
+        }
         Users users = usersRepository.findByIdIsDeletedFalse(usersId).orElseThrow(() ->
                 new RuntimeException("User Not Found"));
         Users targetUsers = usersRepository.findByIdIsDeletedFalse(targetUsersId).orElseThrow(() ->
@@ -60,7 +66,7 @@ public class FollowServiceImpl implements FollowService {
         List<UsersListResponseDto> result = usersService.toUsersListResponseDto(
                 followers.stream().map(Follow::getUserSrc).toList()
         );
-        return new PagingResultDto<>(result, followers.getTotalPages());
+        return new PagingResultDto<>(result, followers.getTotalElements());
     }
 
     @Override
@@ -71,6 +77,6 @@ public class FollowServiceImpl implements FollowService {
         List<UsersListResponseDto> result = usersService.toUsersListResponseDto(
                 followings.stream().map(Follow::getUserSrc).toList()
         );
-        return new PagingResultDto<>(result, followings.getTotalPages());
+        return new PagingResultDto<>(result, followings.getTotalElements());
     }
 }
