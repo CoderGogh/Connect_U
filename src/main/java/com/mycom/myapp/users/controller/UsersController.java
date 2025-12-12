@@ -1,7 +1,6 @@
 package com.mycom.myapp.users.controller;
 
 import com.mycom.myapp.annotation.CurrentUsersId;
-import com.mycom.myapp.auth.details.CustomUserDetails;
 import com.mycom.myapp.users.dto.UsersRequestDto;
 import com.mycom.myapp.users.dto.UsersResponseDto;
 import com.mycom.myapp.users.service.UsersService;
@@ -9,7 +8,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
