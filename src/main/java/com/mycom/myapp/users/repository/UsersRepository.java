@@ -10,6 +10,9 @@ import java.util.Optional;
 
 public interface UsersRepository extends JpaRepository<Users, Integer> {
 
+    @Query("select u from Users u where u.usersId = :usersId and u.isDeleted = false")
+    Optional<Users> findByIdIsDeletedFalse(@Param("usersId") Integer usersId);
+
     @Query("""
     select u
     from Users u

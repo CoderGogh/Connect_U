@@ -50,4 +50,20 @@ public class Users {
         this.isDeleted = true;
         this.deletedAt = LocalDateTime.now();
     }
+
+    public void updatePassword(String password) {
+        this.password = password;
+    }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
+
+    public void updateImageKey(String imageKey) {
+        this.imageKey = imageKey;
+    }
 }
