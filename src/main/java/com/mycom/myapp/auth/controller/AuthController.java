@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,12 +22,12 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(HttpServletRequest request, @RequestBody @Valid LoginRequestDto dto) {
+    public ResponseEntity<LoginResponseDto> login(HttpServletRequest request, @RequestBody @Validated LoginRequestDto dto) {
         return ResponseEntity.ok().body(authService.login(request,dto));
     }
 
     @PostMapping("/join")
-    public ResponseEntity<JoinResponseDto> join(@RequestBody @Valid JoinRequestDto dto) {
+    public ResponseEntity<JoinResponseDto> join(@RequestBody @Validated JoinRequestDto dto) {
         return ResponseEntity.ok().body(authService.join(dto));
     }
 
