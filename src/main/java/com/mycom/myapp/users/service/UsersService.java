@@ -7,6 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 
 public interface UsersService {
     UsersResponseDto getUsersById(Integer usersId);
-    void quit(Integer usersId);
+    void quit(HttpServletRequest request, Integer usersId) throws ServletException;
     void update(HttpServletRequest request, Integer usersId, UsersRequestDto dto) throws ServletException;
 }

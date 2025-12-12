@@ -38,11 +38,12 @@ public class UsersServiceImpl implements UsersService {
     }
 
     @Override
-    public void quit(Integer usersId) {
+    public void quit(HttpServletRequest request, Integer usersId) throws ServletException {
         Users users = usersRepository.findById(usersId).orElseThrow(() ->
                 new RuntimeException("User Not Found"));
         users.setDelete();
         usersRepository.save(users);
+        request.logout();
     }
 
     @Override
