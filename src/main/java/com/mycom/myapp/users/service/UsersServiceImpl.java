@@ -1,5 +1,6 @@
 package com.mycom.myapp.users.service;
 
+import com.mycom.myapp.common.PagingResultDto;
 import com.mycom.myapp.users.dto.UsersListResponseDto;
 import com.mycom.myapp.users.dto.UsersRequestDto;
 import com.mycom.myapp.users.dto.UsersResponseDto;
@@ -8,6 +9,9 @@ import com.mycom.myapp.users.repository.UsersRepository;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +22,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UsersServiceImpl implements UsersService {
+    private final int USERS_MAX_PAGE_SIZE = 100;
     private final UsersRepository usersRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
@@ -40,11 +45,39 @@ public class UsersServiceImpl implements UsersService {
     }
 
     /**
+     * 유저 페이징 시 페이지 크기 값 검증
+     * @param pageSize
+     * @return
+     */
+    private Integer verifyUsersPageSize(Integer pageSize) {
+        if(pageSize < 1) {
+            return 1;
+        }
+        if(pageSize > USERS_MAX_PAGE_SIZE) {
+            return USERS_MAX_PAGE_SIZE;
+        }
+        return pageSize;
+    }
+
+    /**
+     * 유저 페이징 시 페이지 번호 값 검증
+     * @param startOffset
+     * @return
+     */
+    private Integer verifyUsersStartOffset(Integer startOffset) {
+        if(startOffset < 0) {
+            return 0;
+        }
+        return startOffset;
+    }
+
+    /**
      * List< Users > -> List< UsersListResponseDto >
      * @param usersList
      * @return
      */
-    private List<UsersListResponseDto> toUsersListResponseDto(List<Users> usersList) {
+    @Override
+    public List<UsersListResponseDto> toUsersListResponseDto(List<Users> usersList) {
         List<UsersListResponseDto> list = new ArrayList<>();
         for (Users users : usersList) {
             UsersListResponseDto dto = new UsersListResponseDto();
@@ -94,8 +127,12 @@ public class UsersServiceImpl implements UsersService {
     }
 
     @Override
-    public List<UsersListResponseDto> getUsersListByNickname(String nickname) {
-        List<Users> usersList = usersRepository.findByNickname(nickname);
-        return toUsersListResponseDto(usersList);
+    public PagingResultDto<UsersListResponseDto> getUsersListByNickname(String nickname, Integer startOffset, Integer pageSize) {
+        pageSize = verifyUsersPageSize(pageSize);
+        startOffset = verifyUsersStartOffset(startOffset);
+        Pageable pageable = PageRequest.of(startOffset, pageSize);
+        Page<Users> usersList = usersRepository.findByNickname(pageable, nickname);
+        List<UsersListResponseDto> result = toUsersListResponseDto(usersList.getContent());
+        return new PagingResultDto<>(result, usersList.getTotalElements());
     }
 }

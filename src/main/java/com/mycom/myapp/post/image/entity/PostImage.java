@@ -23,7 +23,7 @@ public class PostImage {
     @ToString.Exclude
     private Post post;
 
-    @Column(name = "image_key", nullable = false, length = 255)
+    @Column(name = "image_key", nullable = false, length = 255, unique = true)
     private String imageKey;
 
     @Column(nullable = false)

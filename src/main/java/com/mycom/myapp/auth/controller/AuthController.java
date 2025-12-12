@@ -24,12 +24,14 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
+
     @Operation(summary = "로그인")
     public ResponseEntity<LoginResponseDto> login(HttpServletRequest request, @RequestBody @Valid LoginRequestDto dto) {
         return ResponseEntity.ok().body(authService.login(request,dto));
     }
 
     @PostMapping("/join")
+
     @Operation(summary = "회원가입", description = "이미지는 회원가입 후 별도의 API를 통해 업로드합니다.")
     public ResponseEntity<JoinResponseDto> join(@RequestBody @Valid JoinRequestDto dto) {
         return ResponseEntity.ok().body(authService.join(dto));

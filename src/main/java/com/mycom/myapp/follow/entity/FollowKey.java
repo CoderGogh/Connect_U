@@ -15,20 +15,20 @@ import java.util.Objects;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class FollowKey implements Serializable {
 
-    private Integer userIdSrc;   // 팔로우 하는 사람
-    private Integer userIdDest;  // 팔로우 당하는 사람
+    private Integer usersIdSrc;   // 팔로우 하는 사람
+    private Integer usersIdDest;  // 팔로우 당하는 사람
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         FollowKey that = (FollowKey) o;
-        return Objects.equals(userIdSrc, that.userIdSrc) &&
-               Objects.equals(userIdDest, that.userIdDest);
+        return Objects.equals(usersIdSrc, that.usersIdSrc) &&
+               Objects.equals(usersIdDest, that.usersIdDest);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userIdSrc, userIdDest);
+        return Objects.hash(usersIdSrc, usersIdDest);
     }
 }
