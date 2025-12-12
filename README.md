@@ -11,18 +11,20 @@
 
 ### 사용 방법
 
-인증 정보가 **필수**인 경우
+인증 정보가 **필수**인 경우<br>
 ```java
-@GetMapping("/my-info")
-public ResponseEntity<UsersResponseDto> getMyInfo(@CurrentUsersId Integer usersId) {
-    return ResponseEntity.ok(usersService.getUsersById(usersId));
+// ex) '회원 정보 수정'과 같이 인증 정보가 필수인 경우
+@GetMapping("/test-api")
+public ResponseEntity<?> m(@CurrentUsersId Integer usersId) {
+  ...
 }
 ```
 
 인증 정보가 **필수가 아닌** 경우
 ```java
-@GetMapping("/my-info")
-public ResponseEntity<UsersResponseDto> getMyInfo(@CurrentUsersId(required = false) Integer usersId) {
-    return ResponseEntity.ok(usersService.getUsersById(usersId));
+// ex) '게시글 조회'처럼 인증 정보를 활용하기는 하나, 필수는 아닌 경우
+@GetMapping("/test-api")
+public ResponseEntity<?> m(@CurrentUsersId(required = false) Integer usersId) {
+  ...
 }
 ```
