@@ -7,10 +7,9 @@ import lombok.Setter;
 import java.util.List;
 
 @Getter
-@Setter
 public class PagingResultDto<T> {
-    private List<T> content;
-    private Integer totalCount;
+    private final List<T> content;
+    private final Integer totalCount;
 
     public PagingResultDto(@NonNull List<T> content, @NonNull Integer totalCount) {
         this.content = content;

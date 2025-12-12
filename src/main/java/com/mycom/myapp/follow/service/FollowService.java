@@ -1,5 +1,6 @@
 package com.mycom.myapp.follow.service;
 
+import com.mycom.myapp.common.PagingResultDto;
 import com.mycom.myapp.users.dto.UsersListResponseDto;
 
 import java.util.List;
@@ -18,6 +19,6 @@ public interface FollowService {
      * @param targetUsersId 언팔로우할 대상의 유저 식별자
      */
     void unfollow(Integer usersId, Integer targetUsersId);
-    List<UsersListResponseDto> followerList(Integer usersId); // 자신을 팔로우하는 유저 목록 조회
-    List<UsersListResponseDto> followingList(Integer usersId); // 자신이 팔로잉하는 유저 목록 조회
+    PagingResultDto<UsersListResponseDto> followerList(Integer usersId, Integer startOffset, Integer pageSize); // 자신을 팔로우하는 유저 목록 조회
+    PagingResultDto<UsersListResponseDto> followingList(Integer usersId, Integer startOffset, Integer pageSize); // 자신이 팔로잉하는 유저 목록 조회
 }

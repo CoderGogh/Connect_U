@@ -1,11 +1,16 @@
 package com.mycom.myapp.follow.service;
 
+import com.mycom.myapp.common.PagingResultDto;
 import com.mycom.myapp.follow.entity.Follow;
 import com.mycom.myapp.follow.repository.FollowRepository;
 import com.mycom.myapp.users.dto.UsersListResponseDto;
 import com.mycom.myapp.users.entity.Users;
 import com.mycom.myapp.users.repository.UsersRepository;
+import com.mycom.myapp.users.service.UsersService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +20,19 @@ import java.util.List;
 public class FollowServiceImpl implements FollowService {
     private final FollowRepository followRepository;
     private final UsersRepository usersRepository;
+    private final UsersService usersService;
+
+    /**
+     * 팔로우 리스트 조회 시 페이지 크기 범위 설정
+     * @param pageSize 프론트로부터 전달받은 페이지 사이즈
+     */
+    private Integer verifyFollowPageSize(Integer pageSize) {
+        if(pageSize < 1)
+            return 1;
+        if(pageSize > 100)
+            return 100;
+        return pageSize;
+    }
 
     @Override
     public void follow(Integer usersId, Integer targetUsersId) {
@@ -35,12 +53,24 @@ public class FollowServiceImpl implements FollowService {
     }
 
     @Override
-    public List<UsersListResponseDto> followerList(Integer usersId) {
-        return List.of();
+    public PagingResultDto<UsersListResponseDto> followerList(Integer usersId, Integer startOffset, Integer pageSize) {
+        pageSize = verifyFollowPageSize(pageSize);
+        Pageable pageable = PageRequest.of(startOffset, pageSize);
+        Page<Follow> followers = followRepository.findFollowersByUsersIdDest(pageable, usersId);
+        List<UsersListResponseDto> result = usersService.toUsersListResponseDto(
+                followers.stream().map(Follow::getUserSrc).toList()
+        );
+        return new PagingResultDto<>(result, followers.getTotalPages());
     }
 
     @Override
-    public List<UsersListResponseDto> followingList(Integer usersId) {
-        return List.of();
+    public PagingResultDto<UsersListResponseDto> followingList(Integer usersId, Integer startOffset, Integer pageSize) {
+        pageSize = verifyFollowPageSize(pageSize);
+        Pageable pageable = PageRequest.of(startOffset, pageSize);
+        Page<Follow> followings = followRepository.findFollowingsByUsersIdSrc(pageable, usersId);
+        List<UsersListResponseDto> result = usersService.toUsersListResponseDto(
+                followings.stream().map(Follow::getUserSrc).toList()
+        );
+        return new PagingResultDto<>(result, followings.getTotalPages());
     }
 }

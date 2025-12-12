@@ -44,7 +44,8 @@ public class UsersServiceImpl implements UsersService {
      * @param usersList
      * @return
      */
-    private List<UsersListResponseDto> toUsersListResponseDto(List<Users> usersList) {
+    @Override
+    public List<UsersListResponseDto> toUsersListResponseDto(List<Users> usersList) {
         List<UsersListResponseDto> list = new ArrayList<>();
         for (Users users : usersList) {
             UsersListResponseDto dto = new UsersListResponseDto();
