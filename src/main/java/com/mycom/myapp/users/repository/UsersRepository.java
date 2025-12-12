@@ -1,6 +1,8 @@
 package com.mycom.myapp.users.repository;
 
 import com.mycom.myapp.users.entity.Users;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,7 +13,7 @@ import java.util.Optional;
 public interface UsersRepository extends JpaRepository<Users, Integer> {
 
     @Query("select u from Users u where u.nickname like %:nickname% and u.isDeleted = false")
-    List<Users> findByNickname(@Param("nickname") String nickname);
+    Page<Users> findByNickname(Pageable pageable, @Param("nickname") String nickname);
 
     @Query("select u from Users u where u.usersId = :usersId and u.isDeleted = false")
     Optional<Users> findByIdIsDeletedFalse(@Param("usersId") Integer usersId);
