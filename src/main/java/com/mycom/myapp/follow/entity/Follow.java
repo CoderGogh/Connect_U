@@ -26,13 +26,13 @@ public class Follow {
     private FollowKey id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id_src", nullable = false)
-    @MapsId("userIdSrc")   // FollowKey.userIdSrc 와 매핑
+    @JoinColumn(name = "users_id_src", nullable = false)
+    @MapsId("usersIdSrc")   // FollowKey.userIdSrc 와 매핑
     private Users userSrc;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id_dest", nullable = false)
-    @MapsId("userIdDest")  // FollowKey.userIdDest 와 매핑
+    @JoinColumn(name = "users_id_dest", nullable = false)
+    @MapsId("usersIdDest")  // FollowKey.userIdDest 와 매핑
     private Users userDest;
 
     private String status;
