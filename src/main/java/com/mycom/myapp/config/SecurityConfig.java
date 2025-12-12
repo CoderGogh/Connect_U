@@ -50,11 +50,6 @@ public class SecurityConfig {
                                 "/swagger-ui/**"
                                 ).permitAll()   
                         
-                     // 댓글,대댓글 api 테스트용 임시허용            
-                        .requestMatchers(HttpMethod.POST, "/api/comments/**").permitAll()
-                        .requestMatchers(HttpMethod.PATCH, "/api/comments/**").permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/comments/**").permitAll()
-                     //
                         
                         .anyRequest().authenticated()
                 )
