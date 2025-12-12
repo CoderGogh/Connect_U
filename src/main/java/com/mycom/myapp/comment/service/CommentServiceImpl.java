@@ -8,7 +8,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,31 +74,38 @@ public class CommentServiceImpl implements CommentService {
         //  댓글 페이징 + 트리 반환
     
     @Override
-    public Page<CommentTreeResponseDto> getCommentsByPost(Integer postId, Integer userId, Pageable pageable) {
-
-        // 게시글 확인
+    public Page<CommentTreeResponseDto> getCommentsByPost(
+            Integer postId,
+            Integer userId,
+            Pageable pageable,
+            String sort
+    ) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
 
-        // 부모 댓글 페이징
+        // ⭐ 여기서 정렬 적용
+        Pageable sortedPageable = applySort(pageable, sort);
+
+        // ⭐ 정렬된 pageable로 조회
         Page<Comment> parentPage = commentRepository
-                .findByPostAndParentCommentIsNullAndIsDeletedFalseOrderByCreatedAtAsc(post, pageable);
+                .findByPostAndParentCommentIsNullAndIsDeletedFalse(post, sortedPageable);
 
         List<Comment> parentComments = parentPage.getContent();
 
-        // 부모 댓글 ID → 자식 댓글 전체 조회
-        List<Integer> parentIds = parentComments.stream().map(Comment::getId).toList();
+        List<Integer> parentIds = parentComments.stream()
+                .map(Comment::getId)
+                .toList();
 
         List<Comment> childComments = commentRepository.findByParentCommentIdIn(parentIds);
 
-        // 전체 댓글 ID 목록
         List<Comment> allComments = new ArrayList<>();
         allComments.addAll(parentComments);
         allComments.addAll(childComments);
 
-        List<Integer> allIds = allComments.stream().map(Comment::getId).toList();
+        List<Integer> allIds = allComments.stream()
+                .map(Comment::getId)
+                .toList();
 
-        // 좋아요 조회
         List<CommentLike> likes = commentLikeRepository
                 .findByIdUsersIdAndIdCommentIdIn(userId, allIds);
 
@@ -104,11 +113,33 @@ public class CommentServiceImpl implements CommentService {
                 .map(like -> like.getComment().getId())
                 .collect(Collectors.toSet());
 
-        //  트리 구조 생성
         List<CommentTreeResponseDto> tree = buildTree(allComments, likedSet);
 
-        //  페이징 형태로 반환
-        return new PageImpl<>(tree, pageable, parentPage.getTotalElements());
+        return new PageImpl<>(tree, sortedPageable, parentPage.getTotalElements());
+    }
+
+
+    private Pageable applySort(Pageable pageable, String sort) {
+
+        return switch (sort) {
+            case "oldest" -> PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    Sort.by("createdAt").ascending()
+            );
+
+            case "like" -> PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    Sort.by("likeCount").descending()
+            );
+
+            default -> PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    Sort.by("createdAt").descending() // latest (기본)
+            );
+        };
     }
 
 

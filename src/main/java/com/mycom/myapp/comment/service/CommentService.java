@@ -14,7 +14,7 @@ public interface CommentService {
 
     CommentResponseDto createComment(CommentCreateRequestDto dto, Integer userId);
 
-    Page<CommentTreeResponseDto> getCommentsByPost(Integer postId, Integer userId, Pageable pageable);
+    Page<CommentTreeResponseDto> getCommentsByPost(Integer postId, Integer userId, Pageable pageable ,String sort);
 
     CommentResponseDto updateComment(Integer commentId, String content, Integer userId);
     
