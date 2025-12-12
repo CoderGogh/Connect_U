@@ -18,20 +18,32 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class FollowServiceImpl implements FollowService {
+    private final int FOLLOW_MAX_PAGE_SIZE = 100;
     private final FollowRepository followRepository;
     private final UsersRepository usersRepository;
     private final UsersService usersService;
 
     /**
-     * 팔로우 리스트 조회 시 페이지 크기 범위 설정
+     * 팔로우 리스트 조회 시 페이지 크기 범위 검증
      * @param pageSize 프론트로부터 전달받은 페이지 사이즈
      */
     private Integer verifyFollowPageSize(Integer pageSize) {
         if(pageSize < 1)
             return 1;
-        if(pageSize > 100)
-            return 100;
+        if(pageSize > FOLLOW_MAX_PAGE_SIZE)
+            return FOLLOW_MAX_PAGE_SIZE;
         return pageSize;
+    }
+
+    /**
+     * 팔로우 리스트 조회 시 페이지 번호 범위 검증
+     * @param startOffset 프론트로부터 전달받은 페이지 번호
+     * @return
+     */
+    private Integer verifyFollowStartOffset(Integer startOffset) {
+        if(startOffset < 0)
+            return 0;
+        return startOffset;
     }
 
     @Override
@@ -61,6 +73,7 @@ public class FollowServiceImpl implements FollowService {
     @Override
     public PagingResultDto<UsersListResponseDto> followerList(Integer usersId, Integer startOffset, Integer pageSize) {
         pageSize = verifyFollowPageSize(pageSize);
+        startOffset = verifyFollowStartOffset(startOffset);
         Pageable pageable = PageRequest.of(startOffset, pageSize);
         Page<Follow> followers = followRepository.findFollowersByUsersIdDest(pageable, usersId);
         List<UsersListResponseDto> result = usersService.toUsersListResponseDto(
@@ -72,6 +85,7 @@ public class FollowServiceImpl implements FollowService {
     @Override
     public PagingResultDto<UsersListResponseDto> followingList(Integer usersId, Integer startOffset, Integer pageSize) {
         pageSize = verifyFollowPageSize(pageSize);
+        startOffset = verifyFollowStartOffset(startOffset);
         Pageable pageable = PageRequest.of(startOffset, pageSize);
         Page<Follow> followings = followRepository.findFollowingsByUsersIdSrc(pageable, usersId);
         List<UsersListResponseDto> result = usersService.toUsersListResponseDto(
