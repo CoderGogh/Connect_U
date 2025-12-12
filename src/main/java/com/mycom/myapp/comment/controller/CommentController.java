@@ -37,17 +37,22 @@ public class CommentController {
 
 	// 댓글 + 대댓글 트리 조회 (페이징 + 정렬)
 	@GetMapping("/{postId}")
-	@Operation(summary = "댓글 트리 조회", description = "부모 댓글 기준으로 페이징 처리되며, 대댓글은 트리 구조로 함께 반환됩니다. "
-			+ "기본 정렬은 최신순이며, sort=latest|oldest|like 옵션을 지원합니다.")
-	public Page<CommentTreeResponseDto> getCommentsByPost(@PathVariable Integer postId,
-			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
-			@RequestParam(defaultValue = "latest") String sort, Authentication authentication) {
-		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-		Integer userId = userDetails.getId();
+	public Page<CommentTreeResponseDto> getCommentsByPost(
+	    @PathVariable("postId") Integer postId,
 
-		Pageable pageable = PageRequest.of(page, size);
-		return commentService.getCommentsByPost(postId, userId, pageable, sort);
+	    @RequestParam(name = "page", defaultValue = "0") int page,
+	    @RequestParam(name = "size", defaultValue = "10") int size,
+	    @RequestParam(name = "sort", defaultValue = "latest") String sort,
+
+	    Authentication authentication
+	) {
+	    CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+	    Integer userId = userDetails.getId();
+
+	    Pageable pageable = PageRequest.of(page, size);
+	    return commentService.getCommentsByPost(postId, userId, pageable, sort);
 	}
+
 
 	@PostMapping
 	@Operation(
@@ -76,22 +81,31 @@ public class CommentController {
 
 	// 댓글 수정
 	@PatchMapping("/{commentId}")
-	@Operation(summary = "댓글 수정", description = "댓글 작성자 본인만 수정할 수 있습니다.")
-	public CommentResponseDto updateComment(@PathVariable Integer commentId, @RequestParam String content,
-			Authentication authentication) {
-		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-		Integer userId = userDetails.getId();
+	public CommentResponseDto updateComment(
+	    @PathVariable("commentId") Integer commentId,
+	    @RequestParam(name = "content") String content,
+	    Authentication authentication
+	) {
+	    CustomUserDetails userDetails =
+	            (CustomUserDetails) authentication.getPrincipal();
+	    Integer userId = userDetails.getId();
 
-		return commentService.updateComment(commentId, content, userId);
+	    return commentService.updateComment(commentId, content, userId);
 	}
+
 
 	// 댓글 삭제 (soft delete)
 	@DeleteMapping("/{commentId}")
 	@Operation(summary = "댓글 삭제", description = "댓글은 soft delete 처리되며, 작성자 본인만 삭제할 수 있습니다.")
-	public void deleteComment(@PathVariable Integer commentId, Authentication authentication) {
-		CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-		Integer userId = userDetails.getId();
+	public void deleteComment(
+	    @PathVariable("commentId") Integer commentId,
+	    Authentication authentication
+	) {
+	    CustomUserDetails userDetails =
+	            (CustomUserDetails) authentication.getPrincipal();
+	    Integer userId = userDetails.getId();
 
-		commentService.deleteComment(commentId, userId);
+	    commentService.deleteComment(commentId, userId);
 	}
+
 }

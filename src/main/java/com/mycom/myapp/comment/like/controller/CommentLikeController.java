@@ -22,22 +22,22 @@ public class CommentLikeController {
 
     private final CommentLikeService commentLikeService;
 
-    @PostMapping("/{commentId}")
+ 
     @Operation(
         summary = "댓글 좋아요 토글",
         description = "해당 댓글에 좋아요를 누르거나, 이미 눌렀다면 좋아요를 취소합니다."
     )
+    @PostMapping("/{commentId}")
     public CommentLikeResponseDto toggleLike(
-            @PathVariable Integer commentId,
+            @PathVariable("commentId") Integer commentId,
             Authentication authentication
     ) {
-        // SecurityContext에 저장된 사용자 정보
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        CustomUserDetails userDetails =
+                (CustomUserDetails) authentication.getPrincipal();
 
-        // 사용자 PK (usersId)
         Integer userId = userDetails.getId();
-
         return commentLikeService.toggleLike(commentId, userId);
     }
+
 }
 

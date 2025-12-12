@@ -34,7 +34,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/api/auth/**"))
+                        .ignoringRequestMatchers("/api/**"))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
@@ -43,7 +43,7 @@ public class SecurityConfig {
                         // 모든 GET, OPTIONS 요청은 누구나 허용
                         .requestMatchers(HttpMethod.GET, "/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()                     
+                        .requestMatchers("/api/**").permitAll()                     
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html",
