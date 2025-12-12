@@ -1,5 +1,6 @@
 package com.mycom.myapp.users.controller;
 
+import com.mycom.myapp.annotation.CurrentUsersId;
 import com.mycom.myapp.auth.details.CustomUserDetails;
 import com.mycom.myapp.users.dto.UsersRequestDto;
 import com.mycom.myapp.users.dto.UsersResponseDto;
@@ -23,19 +24,19 @@ public class UsersController {
     }
 
     @GetMapping("/my-info")
-    public ResponseEntity<UsersResponseDto> getMyInfo(@AuthenticationPrincipal CustomUserDetails principal) {
-        return ResponseEntity.ok(usersService.getUsersById(principal.getId()));
+    public ResponseEntity<UsersResponseDto> getMyInfo(@CurrentUsersId Integer usersId) {
+        return ResponseEntity.ok(usersService.getUsersById(usersId));
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> quit(HttpServletRequest request, @AuthenticationPrincipal CustomUserDetails principal) throws ServletException {
-        usersService.quit(request, principal.getId());
+    public ResponseEntity<Void> quit(HttpServletRequest request, @CurrentUsersId Integer usersId) throws ServletException {
+        usersService.quit(request, usersId);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping
-    public ResponseEntity<Void> update(HttpServletRequest request, @AuthenticationPrincipal CustomUserDetails principal, @RequestBody UsersRequestDto usersRequestDto) throws ServletException {
-        usersService.update(request, principal.getId(), usersRequestDto);
+    public ResponseEntity<Void> update(HttpServletRequest request, @CurrentUsersId Integer usersId, @RequestBody UsersRequestDto usersRequestDto) throws ServletException {
+        usersService.update(request, usersId, usersRequestDto);
         return ResponseEntity.ok().build();
     }
 }
