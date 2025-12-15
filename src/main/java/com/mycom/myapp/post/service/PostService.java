@@ -14,7 +14,7 @@ public interface PostService {
     /**
      * 게시글 생성
      */
-    PostResponse createPost(CreatePostRequest request, Principal principal);
+    PostResponse createPost(CreatePostRequest request, Integer usersId);
 
     /**
      * 게시글 목록 조회 (페이징)

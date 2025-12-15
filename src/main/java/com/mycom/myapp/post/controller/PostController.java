@@ -31,9 +31,9 @@ public class PostController {
     @PostMapping
     public ResponseEntity<PostResponse> createPost(
             @RequestBody CreatePostRequest request,
-            Principal principal
+            @CurrentUsersId Integer usersId
     ) {
-        PostResponse created = postService.createPost(request, principal);
+        PostResponse created = postService.createPost(request, usersId);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

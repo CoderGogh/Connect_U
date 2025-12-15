@@ -59,10 +59,8 @@ public class PostServiceImpl implements PostService {
     // ================= 게시글 생성 =================
     @Override
     @Transactional
-    public PostResponse createPost(CreatePostRequest request, Principal principal) {
-        if (principal == null) throw new IllegalArgumentException("Authentication required");
-
-        Users user = usersRepository.findByEmailForLogin(principal.getName())
+    public PostResponse createPost(CreatePostRequest request, Integer usersId) {
+        Users user = usersRepository.findByIdIsDeletedFalse(usersId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         PostEntity post = PostEntity.builder()
