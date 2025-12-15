@@ -122,12 +122,6 @@ public class CommentServiceImpl implements CommentService {
     private Pageable applySort(Pageable pageable, String sort) {
 
         return switch (sort) {
-            case "oldest" -> PageRequest.of(
-                    pageable.getPageNumber(),
-                    pageable.getPageSize(),
-                    Sort.by("createdAt").ascending()
-            );
-
             case "like" -> PageRequest.of(
                     pageable.getPageNumber(),
                     pageable.getPageSize(),
