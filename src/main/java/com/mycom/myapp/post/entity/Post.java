@@ -71,4 +71,10 @@ public class Post {
         this.isDeleted = false;
     }
 
+    void increaseLikeCount() {
+        this.likeCount++;
+    }
+    void decreaseLikeCount() {
+        this.likeCount--;
+    }
 }
