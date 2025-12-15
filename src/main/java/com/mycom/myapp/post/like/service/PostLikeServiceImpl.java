@@ -1,6 +1,6 @@
 package com.mycom.myapp.post.like.service;
 
-import com.mycom.myapp.post.entity.Post;
+import com.mycom.myapp.post.entity.PostEntity;
 import com.mycom.myapp.post.like.entity.PostLike;
 import com.mycom.myapp.post.like.repository.PostLikeRepository;
 import com.mycom.myapp.post.repository.PostRepository;
@@ -23,30 +23,36 @@ public class PostLikeServiceImpl implements PostLikeService {
     public void createLike(Integer usersId, Integer postId) {
         Users users = usersRepository.findById(usersId).orElseThrow(() ->
                 new RuntimeException("좋아요를 누른 회원 정보가 존재하지 않습니다."));
-        Post post = postRepository.findById(postId).orElseThrow(() ->
+        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() ->
                 new RuntimeException("좋아요를 추가할 게시글 정보가 존재하지 않습니다."));
         PostLike postLike = PostLike.builder()
                 .users(users)
-                .post(post)
+            .postEntity(postEntity)
                 .build();
         try {
             postLikeRepository.saveAndFlush(postLike); // 이 시점에 flush하도록 만들어 중복에 대한 예외 처리 수행
         } catch (DataIntegrityViolationException e) {
             throw new RuntimeException("이미 좋아요를 표시한 게시글입니다.");
         }
-        post.increaseLikeCount();
+        postEntity.increaseLikeCount();
     }
 
     @Override
     @Transactional
     public void deleteLike(Integer usersId, Integer postId) {
-        Post post = postRepository.findById(postId).orElseThrow(() ->
-                new RuntimeException("좋아요를 추가할 게시글 정보가 존재하지 않습니다."));
-        int ret = postLikeRepository.deleteByPostIdAndUsersId(postId, usersId);
-        if(ret != 1) {
-            // 좋아요 삭제 요청으로 실제 삭제된 레코드 수가 1개보다 많은 경우 롤백 & 예외 발생
-            throw new RuntimeException("좋아요 취소 도중 서버에서 문제가 발생했습니다.");
+
+        PostEntity post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+
+        int deleted = postLikeRepository.deleteByPostIdAndUsersId(postId, usersId);
+
+        if (deleted == 0) {
+            throw new RuntimeException("이미 좋아요가 취소되었거나 존재하지 않습니다.");
         }
-        post.decreaseLikeCount();
+
+        if (post.getLikeCount() > 0) {
+            post.decreaseLikeCount();
+        }
     }
+
 }

@@ -3,6 +3,7 @@ package com.mycom.myapp.post.controller;
 import com.mycom.myapp.annotation.CurrentUsersId;
 import com.mycom.myapp.post.dto.CreatePostRequest;
 import com.mycom.myapp.post.dto.PostResponse;
+import com.mycom.myapp.common.PagingResultDto;
 import com.mycom.myapp.post.service.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -28,14 +29,21 @@ public class PostController {
     }
 
     @PostMapping
-    public ResponseEntity<PostResponse> createPost(@RequestBody CreatePostRequest request, @CurrentUsersId Integer usersId) {
-        PostResponse created = postService.createPost(request, usersId);
-        return ResponseEntity.created(URI.create("/api/posts/" + created.getId())).body(created);
+    public ResponseEntity<PostResponse> createPost(
+            @RequestBody CreatePostRequest request,
+            Principal principal
+    ) {
+        PostResponse created = postService.createPost(request, principal);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(created);
     }
 
+
     @GetMapping
-    public ResponseEntity<Page<PostResponse>> listPosts(Pageable pageable) {
-        Page<PostResponse> page = postService.listPosts(pageable);
+    public ResponseEntity<PagingResultDto<PostResponse>> listPosts(Pageable pageable) {
+        PagingResultDto<PostResponse> page = postService.listPosts(pageable);
         return ResponseEntity.ok(page);
     }
 

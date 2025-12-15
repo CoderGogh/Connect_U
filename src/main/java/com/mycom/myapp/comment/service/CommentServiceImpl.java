@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.mycom.myapp.post.entity.PostEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -21,7 +22,6 @@ import com.mycom.myapp.comment.entity.Comment;
 import com.mycom.myapp.comment.like.entity.CommentLike;
 import com.mycom.myapp.comment.like.repository.CommentLikeRepository;
 import com.mycom.myapp.comment.repository.CommentRepository;
-import com.mycom.myapp.post.entity.Post;
 import com.mycom.myapp.post.repository.PostRepository;
 import com.mycom.myapp.users.entity.Users;
 import com.mycom.myapp.users.repository.UsersRepository;
@@ -45,7 +45,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentResponseDto createComment(CommentCreateRequestDto dto, Integer userId) {
 
-        Post post = postRepository.findById(dto.getPostId())
+        PostEntity postEntity = postRepository.findById(dto.getPostId())
                 .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
 
         Users user = usersRepository.findById(userId)
@@ -59,7 +59,7 @@ public class CommentServiceImpl implements CommentService {
         }
 
         Comment comment = Comment.builder()
-                .post(post)
+                .postEntity(postEntity)
                 .users(user)
                 .parentComment(parent)
                 .content(dto.getContent())
@@ -80,7 +80,7 @@ public class CommentServiceImpl implements CommentService {
             Pageable pageable,
             String sort
     ) {
-        Post post = postRepository.findById(postId)
+        PostEntity postEntity = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
 
         // ⭐ 여기서 정렬 적용
@@ -88,7 +88,7 @@ public class CommentServiceImpl implements CommentService {
 
         // ⭐ 정렬된 pageable로 조회
         Page<Comment> parentPage = commentRepository
-                .findParentCommentsForTree(post, sortedPageable);
+                .findParentCommentsForTree(postEntity, sortedPageable);
 
 
         List<Comment> parentComments = parentPage.getContent();

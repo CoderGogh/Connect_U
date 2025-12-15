@@ -1,26 +1,26 @@
 package com.mycom.myapp.post.repository;
 
-import com.mycom.myapp.post.entity.Post;
+import com.mycom.myapp.post.entity.PostEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface PostRepository extends JpaRepository<Post, Integer> {
+public interface PostRepository extends JpaRepository<PostEntity, Integer> {
 
     @Query("""
         select p
-        from Post p
+        from PostEntity p
         where
             (p.title like %:keyword%
             or p.content like %:keyword%)
             and p.isDeleted = false
     """)
-    Page<Post> searchByTitleOrContent(
+    Page<PostEntity> searchByTitleOrContent(
             Pageable pageable,
             @Param("keyword") String keyword
     );
 
-    Page<Post> findByIsDeletedFalse(Pageable pageable);
+    Page<PostEntity> findByIsDeletedFalse(Pageable pageable);
 }

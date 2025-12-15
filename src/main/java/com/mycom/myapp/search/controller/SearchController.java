@@ -29,14 +29,14 @@ public class SearchController {
             키워드를 기준으로 사용자 또는 게시글을 검색합니다.
 
             - type=user : 사용자 닉네임 기준 검색
-            - type=post : 게시글 제목 또는 본문 기준 검색
+            - type=postModel : 게시글 제목 또는 본문 기준 검색
             - Pageable을 이용한 페이징 지원
             """
     )
     @GetMapping
     public SearchResultDto search(
             @Parameter(
-                description = "검색 타입 (user | post)",
+                description = "검색 타입 (user | postModel)",
                 example = "user",
                 required = true
             )

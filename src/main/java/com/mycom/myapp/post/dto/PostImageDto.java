@@ -1,11 +1,10 @@
 package com.mycom.myapp.post.dto;
 
 public class PostImageDto {
-    private Integer id;
-    private String url;
-    private Integer seq;
 
-    public PostImageDto() {}
+    private Integer id;   // seq 값
+    private String url;   // imageKey
+    private Integer seq;
 
     public PostImageDto(Integer id, String url, Integer seq) {
         this.id = id;
@@ -17,23 +16,11 @@ public class PostImageDto {
         return id;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
     public String getUrl() {
         return url;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
     public Integer getSeq() {
         return seq;
-    }
-
-    public void setSeq(Integer seq) {
-        this.seq = seq;
     }
 }

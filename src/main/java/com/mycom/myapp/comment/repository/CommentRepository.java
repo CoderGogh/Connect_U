@@ -9,13 +9,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.mycom.myapp.comment.entity.Comment;
-import com.mycom.myapp.post.entity.Post;
+import com.mycom.myapp.post.entity.PostEntity;
 import com.mycom.myapp.users.entity.Users;
 
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
 
 	// 게시글의 전체 댓글 조회 (삭제되지 않은 것만)
-	List<Comment> findByPostAndIsDeletedFalseOrderByCreatedAtAsc(Post post);
+	List<Comment> findByPostEntityAndIsDeletedFalseOrderByCreatedAtAsc(PostEntity postEntity);
 
 	// 특정 댓글의 자식 댓글 조회
 	List<Comment> findByParentCommentAndIsDeletedFalseOrderByCreatedAtAsc(Comment parentComment);
@@ -25,19 +25,19 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
 
 
 	// 페이징
-	Page<Comment> findByPostAndParentCommentIsNullAndIsDeletedFalse(
-	        Post post, Pageable pageable
+	Page<Comment> findByPostEntityAndParentCommentIsNullAndIsDeletedFalse(
+		PostEntity postEntity, Pageable pageable
 	);
 	
 	
 	List<Comment> findByParentCommentIdIn(List<Integer> parentIds);
 	
-	@Query("""
+	    @Query("""
 		    select c
 		    from Comment c
-		    where c.post = :post
+		    where c.postEntity = :postEntity
 		      and c.parentComment is null
 		      and (c.isDeleted = false or c.childCount > 0)
 		""")
-		Page<Comment> findParentCommentsForTree(@Param("post") Post post, Pageable pageable);
+		Page<Comment> findParentCommentsForTree(@Param("postEntity") PostEntity postEntity, Pageable pageable);
 }

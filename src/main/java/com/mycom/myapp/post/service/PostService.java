@@ -3,8 +3,8 @@ package com.mycom.myapp.post.service;
 import com.mycom.myapp.post.dto.CreatePostRequest;
 import com.mycom.myapp.post.dto.PostImageDto;
 import com.mycom.myapp.post.dto.PostResponse;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import com.mycom.myapp.common.PagingResultDto;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
@@ -20,7 +20,7 @@ public interface PostService {
     /**
      * 게시글 목록 조회 (페이징)
      */
-    Page<PostResponse> listPosts(Pageable pageable);
+    PagingResultDto<PostResponse> listPosts(Pageable pageable);
 
     /**
      * 게시글 단건 조회
@@ -34,7 +34,7 @@ public interface PostService {
     void deletePost(Integer id, Principal principal);
 
     /**
-     * 게시글 이미지 업로드 (2-step API)
+     * 게시글 이미지 업로드 (2번째 Step API)
      * - 게시글 생성 후 이미지 개별 업로드
      */
     PostImageDto uploadPostImage(
