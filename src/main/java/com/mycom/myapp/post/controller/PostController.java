@@ -1,5 +1,6 @@
 package com.mycom.myapp.post.controller;
 
+import com.mycom.myapp.annotation.CurrentUsersId;
 import com.mycom.myapp.post.dto.CreatePostRequest;
 import com.mycom.myapp.post.dto.PostResponse;
 import com.mycom.myapp.post.service.PostService;
@@ -27,8 +28,8 @@ public class PostController {
     }
 
     @PostMapping
-    public ResponseEntity<PostResponse> createPost(@RequestBody CreatePostRequest request, Principal principal) {
-        PostResponse created = postService.createPost(request, principal);
+    public ResponseEntity<PostResponse> createPost(@RequestBody CreatePostRequest request, @CurrentUsersId Integer usersId) {
+        PostResponse created = postService.createPost(request, usersId);
         return ResponseEntity.created(URI.create("/api/posts/" + created.getId())).body(created);
     }
 

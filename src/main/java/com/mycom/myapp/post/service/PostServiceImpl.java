@@ -48,13 +48,8 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostResponse createPost(CreatePostRequest request, Principal principal) {
-        String username = principal != null ? principal.getName() : null;
-        if (username == null) {
-            throw new IllegalArgumentException("Authentication required");
-        }
-
-        Users user = usersRepository.findByEmailForLogin(username)
+    public PostResponse createPost(CreatePostRequest request, Integer usersId) {
+        Users user = usersRepository.findByIdIsDeletedFalse(usersId)
                 .orElseThrow(() -> new IllegalArgumentException("user not found"));
 
         Post post = Post.builder()
