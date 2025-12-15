@@ -13,7 +13,6 @@ import com.mycom.myapp.users.entity.Users;
 import com.mycom.myapp.users.repository.UsersRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import com.mycom.myapp.storage.StorageClient;
 import com.mycom.myapp.storage.UploadResult;
 import jakarta.transaction.Transactional;
@@ -107,7 +106,7 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));
 
         if (post.getIsDeleted()) throw new IllegalStateException("삭제된 게시글입니다.");
-        if (principal == null || !principal.getName().equals(post.getUsers().getEmail()))
+        if (principal == null)  // || !principal.getName().equals(post.getUsers().getEmail()) 삭제 함 --> Controller/Security에 위임
             throw new SecurityException("Not authorized");
 
         Integer maxSeq = postImageRepository.findMaxSeqByPost(post);

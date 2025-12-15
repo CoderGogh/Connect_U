@@ -1,8 +1,10 @@
 package com.mycom.myapp.storage;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("local")
 public class StorageClientImpl implements StorageClient {
 
     @Override
