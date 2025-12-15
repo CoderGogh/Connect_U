@@ -21,4 +21,6 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
             Pageable pageable,
             @Param("keyword") String keyword
     );
+
+    Page<Post> findByIsDeletedFalse(Pageable pageable);
 }

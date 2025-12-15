@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.security.Principal;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.RequestPart;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -45,5 +48,13 @@ public class PostController {
     public ResponseEntity<Void> deletePost(@PathVariable Integer id, Principal principal) {
         postService.deletePost(id, principal);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(path = "/{id}/images", consumes = "multipart/form-data")
+    public ResponseEntity<com.mycom.myapp.post.dto.PostImageDto> uploadImage(@PathVariable("id") Integer postId,
+                                                                            @RequestPart("file") MultipartFile file,
+                                                                            Principal principal) throws Exception {
+        com.mycom.myapp.post.dto.PostImageDto dto = postService.uploadPostImage(postId, file, principal);
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 }

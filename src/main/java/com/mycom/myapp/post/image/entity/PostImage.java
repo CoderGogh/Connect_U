@@ -1,6 +1,7 @@
 package com.mycom.myapp.post.image.entity;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import com.mycom.myapp.post.entity.Post;
 
@@ -18,8 +19,8 @@ public class PostImage {
     private PostImageKey id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id", nullable = false)
-    @MapsId("postId")   // PostImageKey.postId 매핑
+    @MapsId("postId")
+    @JoinColumn(name = "post_id")
     @ToString.Exclude
     private Post post;
 
@@ -38,13 +39,15 @@ public class PostImage {
     public PostImage(@NonNull Post post, @NonNull Integer seq, @NonNull String imageKey, @NonNull Long volume) {
         this.post = post;
 
-        // ERD 기준 PK = int → Integer 기반
+        // ERD 기준 --> post_id 와 seq를 복합키로 사용
         this.id = new PostImageKey(
                 post.getId(),  // Integer
                 seq            // Integer
         );
 
-        this.imageKey = imageKey;
+        // image_key는 엔티티 생성 시점에 일괄적으로 생성.
+        // 형식: post/{postId}/{uuid}
+        this.imageKey = "post/" + post.getId() + "/" + UUID.randomUUID().toString();
         this.volume = volume;
         this.isDeleted = false;
     }
