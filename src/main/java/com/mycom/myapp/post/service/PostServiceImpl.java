@@ -1,5 +1,7 @@
 package com.mycom.myapp.post.service;
 
+import com.mycom.myapp.common.PagingResultDto;
+import com.mycom.myapp.follow.repository.FollowRepository;
 import com.mycom.myapp.post.dto.CreatePostRequest;
 import com.mycom.myapp.post.dto.PostImageDto;
 import com.mycom.myapp.post.dto.PostResponse;
@@ -9,9 +11,11 @@ import com.mycom.myapp.post.image.repository.PostImageRepository;
 import com.mycom.myapp.post.repository.PostRepository;
 import com.mycom.myapp.users.entity.Users;
 import com.mycom.myapp.users.repository.UsersRepository;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,16 +26,44 @@ import java.util.stream.Collectors;
 
 @Service
 public class PostServiceImpl implements PostService {
-
+    private final int POST_MAX_PAGE_SIZE = 100;
     private final PostRepository postRepository;
     private final PostImageRepository postImageRepository;
     private final UsersRepository usersRepository;
+    private final FollowRepository followRepository;
 
     @Autowired
-    public PostServiceImpl(PostRepository postRepository, PostImageRepository postImageRepository, UsersRepository usersRepository) {
+    public PostServiceImpl(PostRepository postRepository, PostImageRepository postImageRepository, UsersRepository usersRepository, FollowRepository followRepository) {
         this.postRepository = postRepository;
         this.postImageRepository = postImageRepository;
         this.usersRepository = usersRepository;
+        this.followRepository = followRepository;
+    }
+    /**
+     * 게시글 페이징 시 페이지 크기 값 검증
+     * @param pageSize
+     * @return
+     */
+    private Integer verifyPostsPageSize(Integer pageSize) {
+        if(pageSize < 1) {
+            return 1;
+        }
+        if(pageSize > POST_MAX_PAGE_SIZE) {
+            return POST_MAX_PAGE_SIZE;
+        }
+        return pageSize;
+    }
+
+    /**
+     * 게시글 페이징 시 페이지 번호 값 검증
+     * @param startOffset
+     * @return
+     */
+    private Integer verifyPostsStartOffset(Integer startOffset) {
+        if(startOffset < 0) {
+            return 0;
+        }
+        return startOffset;
     }
 
     @Override
@@ -112,5 +144,29 @@ public class PostServiceImpl implements PostService {
         }).collect(Collectors.toList());
         dto.setImages(imageDtos);
         return dto;
+    }
+
+    @Override
+    public PagingResultDto<PostResponse> getFollwingPostLatest(Integer usersId, Integer startOffset, Integer pageSize) {
+        pageSize = verifyPostsPageSize(pageSize);
+        startOffset = verifyPostsStartOffset(startOffset);
+        Pageable pageable = PageRequest.of(startOffset, pageSize);
+
+        List<Integer> followingUsersIdList = followRepository.findAllByUserSrc(usersId);
+        Page<Post> followingPosts = postRepository.findActiveFollwingPostsOrderByCreatedAtDesc(pageable, followingUsersIdList);
+        List<PostResponse> followingPostslist = followingPosts.stream().map(this::toDto).toList();
+
+        return new PagingResultDto<>(followingPostslist, followingPosts.getTotalElements());
+    }
+    @Override
+    public PagingResultDto<PostResponse> getPostsLatest(Integer startOffset, Integer pageSize) {
+        pageSize = verifyPostsPageSize(pageSize);
+        startOffset = verifyPostsStartOffset(startOffset);
+        Pageable pageable = PageRequest.of(startOffset, pageSize);
+
+        // 비로그인 사용자의 경우 전체 최신순 조회만 제공
+        Page<Post> posts = postRepository.findActiveOrderByCreatedAtDesc(pageable);
+        List<PostResponse> list = posts.stream().map(this::toDto).toList();
+        return new PagingResultDto<>(list, posts.getTotalElements());
     }
 }

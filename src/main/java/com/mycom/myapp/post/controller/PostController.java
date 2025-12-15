@@ -1,9 +1,11 @@
 package com.mycom.myapp.post.controller;
 
 import com.mycom.myapp.annotation.CurrentUsersId;
+import com.mycom.myapp.common.PagingResultDto;
 import com.mycom.myapp.post.dto.CreatePostRequest;
 import com.mycom.myapp.post.dto.PostResponse;
 import com.mycom.myapp.post.service.PostService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -46,5 +48,17 @@ public class PostController {
     public ResponseEntity<Void> deletePost(@PathVariable Integer id, Principal principal) {
         postService.deletePost(id, principal);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/latest")
+    @Operation(summary = "게시글 전체 최신순 조회", description = "페이지 번호(page), 페이지 크기(size)를 URL 쿼리 파라미터로 전달해주세요. 이 API 반환값의 content가 빈 리스트면 직전 조회 결과값이 마지막 페이지였음을 의미합니다.")
+    public ResponseEntity<PagingResultDto<PostResponse>> getActivePostsLatest(@RequestParam(value = "page", defaultValue = "0") Integer startOffset, @RequestParam(value = "size", defaultValue = "1") Integer pageSize) {
+        return ResponseEntity.ok(postService.getPostsLatest(startOffset, pageSize));
+    }
+
+    @GetMapping("/following-latest")
+    @Operation(summary = "팔로우 대상이 작성한 게시글 최신순 조회", description = "페이지 번호(page), 페이지 크기(size)를 URL 쿼리 파라미터로 전달해주세요. 이 API 반환값의 content가 빈 리스트면 그때부터는 '게시글 전체 조회 API'를 요청해주세요.")
+    public ResponseEntity<PagingResultDto<PostResponse>> getActiveFollowingPostsLatest(@CurrentUsersId(required = false) Integer usersId, @RequestParam(value = "page", defaultValue = "0") Integer startOffset, @RequestParam(value = "size", defaultValue = "1") Integer pageSize) {
+        return ResponseEntity.ok(postService.getFollwingPostLatest(usersId, startOffset, pageSize));
     }
 }
