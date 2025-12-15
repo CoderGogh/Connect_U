@@ -88,7 +88,8 @@ public class CommentServiceImpl implements CommentService {
 
         // ⭐ 정렬된 pageable로 조회
         Page<Comment> parentPage = commentRepository
-                .findByPostAndParentCommentIsNullAndIsDeletedFalse(post, sortedPageable);
+                .findParentCommentsForTree(post, sortedPageable);
+
 
         List<Comment> parentComments = parentPage.getContent();
 
@@ -202,17 +203,24 @@ public class CommentServiceImpl implements CommentService {
         // TREE DTO 생성
       
     private CommentTreeResponseDto convertToTreeDto(Comment comment, boolean isLiked) {
+
+        boolean deleted = Boolean.TRUE.equals(comment.getIsDeleted());
+
+        String content = deleted ? "삭제된 댓글입니다." : comment.getContent();
+        String username = deleted ? "알 수 없음" : comment.getUsers().getNickname();
+        Integer userId = deleted ? null : comment.getUsers().getUsersId();
+
         return CommentTreeResponseDto.builder()
                 .id(comment.getId())
-                .content(comment.getContent())
+                .content(content)
                 .likeCount(comment.getLikeCount())
                 .childCount(comment.getChildCount())
                 .isDeleted(comment.getIsDeleted())
                 .deletedAt(comment.getDeletedAt())
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())
-                .userId(comment.getUsers().getUsersId())
-                .username(comment.getUsers().getNickname())
+                .userId(userId)
+                .username(username)
                 .parentCommentId(comment.getParentComment() != null ?
                         comment.getParentComment().getId() : null)
                 .isLiked(isLiked)
