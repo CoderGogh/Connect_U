@@ -57,8 +57,20 @@ public class PostController {
     }
 
     @GetMapping("/following-latest")
-    @Operation(summary = "팔로우 대상이 작성한 게시글 최신순 조회", description = "페이지 번호(page), 페이지 크기(size)를 URL 쿼리 파라미터로 전달해주세요. 이 API 반환값의 content가 빈 리스트면 그때부터는 '게시글 전체 조회 API'를 요청해주세요.")
+    @Operation(summary = "팔로우 대상이 작성한 게시글 최신순 조회", description = "페이지 번호(page), 페이지 크기(size)를 URL 쿼리 파라미터로 전달해주세요. 이 API 반환값의 content가 빈 리스트면 그때부터는 '게시글 전체 최신순 조회 API'를 0 페이지부터 요청해주세요.")
     public ResponseEntity<PagingResultDto<PostResponse>> getActiveFollowingPostsLatest(@CurrentUsersId(required = false) Integer usersId, @RequestParam(value = "page", defaultValue = "0") Integer startOffset, @RequestParam(value = "size", defaultValue = "1") Integer pageSize) {
         return ResponseEntity.ok(postService.getFollwingPostLatest(usersId, startOffset, pageSize));
+    }
+
+    @GetMapping("/likes")
+    @Operation(summary = "게시글 전체 좋아요순 조회", description = "페이지 번호(page), 페이지 크기(size)를 URL 쿼리 파라미터로 전달해주세요. 이 API 반환값의 content가 빈 리스트면 직전 조회 결과값이 마지막 페이지였음을 의미합니다.")
+    public ResponseEntity<PagingResultDto<PostResponse>> getActivePostLikeCountDesc(@RequestParam(value = "page", defaultValue = "0") Integer startOffset, @RequestParam(value = "size", defaultValue = "1") Integer pageSize) {
+        return ResponseEntity.ok(postService.getPostsLikesDesc(startOffset, pageSize));
+    }
+
+    @GetMapping("/following-likes")
+    @Operation(summary = "팔로우 대상이 작성한 게시글 좋아요순 조회", description = "페이지 번호(page), 페이지 크기(size)를 URL 쿼리 파라미터로 전달해주세요. 이 API 반환값의 content가 빈 리스트면 그때부터는 '게시글 전체 좋아요순 조회 API'를 0 페이지부터 요청해주세요.")
+    public ResponseEntity<PagingResultDto<PostResponse>> getActiveFollowingPostsLikeCountDesc(@CurrentUsersId(required = false) Integer usersId, @RequestParam(value = "page", defaultValue = "0") Integer startOffset, @RequestParam(value = "size", defaultValue = "1") Integer pageSize) {
+        return ResponseEntity.ok(postService.getFollwingPostLikesDesc(usersId, startOffset, pageSize));
     }
 }

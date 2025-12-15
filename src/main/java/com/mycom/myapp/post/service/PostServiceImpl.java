@@ -134,6 +134,7 @@ public class PostServiceImpl implements PostService {
         if (post.getUsers() != null) dto.setAuthorUsername(post.getUsers().getNickname());
         dto.setTitle(post.getTitle());
         dto.setContent(post.getContent());
+        dto.setLikeCount(post.getLikeCount());
         dto.setCreatedAt(post.getCreatedAt());
         dto.setUpdatedAt(post.getUpdatedAt());
         // 이미지 매핑: PostImage 엔티티를 DTO로 변환
@@ -158,6 +159,7 @@ public class PostServiceImpl implements PostService {
 
         return new PagingResultDto<>(followingPostslist, followingPosts.getTotalElements());
     }
+
     @Override
     public PagingResultDto<PostResponse> getPostsLatest(Integer startOffset, Integer pageSize) {
         pageSize = verifyPostsPageSize(pageSize);
@@ -168,5 +170,26 @@ public class PostServiceImpl implements PostService {
         Page<Post> posts = postRepository.findActiveOrderByCreatedAtDesc(pageable);
         List<PostResponse> list = posts.stream().map(this::toDto).toList();
         return new PagingResultDto<>(list, posts.getTotalElements());
+    }
+
+    @Override
+    public PagingResultDto<PostResponse> getPostsLikesDesc(Integer startOffset, Integer pageSize) {
+        pageSize = verifyPostsPageSize(pageSize);
+        startOffset = verifyPostsStartOffset(startOffset);
+        Pageable pageable = PageRequest.of(startOffset, pageSize);
+        Page<Post> posts = postRepository.findActiveOrderByLikeCountDesc(pageable);
+        List<PostResponse> list = posts.stream().map(this::toDto).toList();
+        return new PagingResultDto<>(list, posts.getTotalElements());
+    }
+
+    @Override
+    public PagingResultDto<PostResponse> getFollwingPostLikesDesc(Integer usersId, Integer startOffset, Integer pageSize) {
+        pageSize = verifyPostsPageSize(pageSize);
+        startOffset = verifyPostsStartOffset(startOffset);
+        Pageable pageable = PageRequest.of(startOffset, pageSize);
+        List<Integer> followingUsersIdList = followRepository.findAllByUserSrc(usersId);
+        Page<Post> followingPosts = postRepository.findActiveFollowingPostsOrderByLikeCountDesc(pageable, followingUsersIdList);
+        List<PostResponse> followingPostslist = followingPosts.stream().map(this::toDto).toList();
+        return new PagingResultDto<>(followingPostslist, followingPosts.getTotalElements());
     }
 }

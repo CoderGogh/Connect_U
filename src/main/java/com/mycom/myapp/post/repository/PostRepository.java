@@ -40,4 +40,21 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
      */
     @Query("select p from Post p join fetch p.users u where p.users.usersId in :usersIdList and p.isDeleted = false order by p.createdAt desc")
     Page<Post> findActiveFollwingPostsOrderByCreatedAtDesc(Pageable pageable, @Param("usersIdList") List<Integer> usersIdList);
+
+    /**
+     * 게시글 전체 좋아요 순 조회
+     * @param pageable
+     * @return
+     */
+    @Query("select p from Post p join fetch p.users u where u.isDeleted = false order by p.likeCount desc, p.createdAt desc")
+    Page<Post> findActiveOrderByLikeCountDesc(Pageable pageable);
+
+    /**
+     * 특정 사용자들이 작성한 게시글만 좋아요순 조회
+     * @param pageable
+     * @param usersIdList 특정 사용자들의 식별자 리스트
+     * @return
+     */
+    @Query("select p from Post p join fetch p.users u where p.users.usersId in :usersIdList and p.isDeleted = false order by p.likeCount desc, p.createdAt desc")
+    Page<Post> findActiveFollowingPostsOrderByLikeCountDesc(Pageable pageable, @Param("usersIdList") List<Integer> usersIdList);
 }

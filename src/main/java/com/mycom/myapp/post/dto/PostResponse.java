@@ -9,6 +9,7 @@ public class PostResponse {
     private String authorUsername;
     private String title;
     private String content;
+    private Integer likeCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<PostImageDto> images;
@@ -77,5 +78,13 @@ public class PostResponse {
 
     public void setImages(List<PostImageDto> images) {
         this.images = images;
+    }
+
+    public Integer getLikeCount() {
+        return likeCount;
+    }
+
+    public void setLikeCount(Integer likeCount) {
+        this.likeCount = likeCount;
     }
 }

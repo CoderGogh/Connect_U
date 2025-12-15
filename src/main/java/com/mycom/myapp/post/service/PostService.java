@@ -29,4 +29,20 @@ public interface PostService {
      * @return
      */
     PagingResultDto<PostResponse> getFollwingPostLatest(Integer usersId, Integer startOffset, Integer pageSize);
+
+    /**
+     * 게시글 좋아요순 조회
+     * @param startOffset 조회 시작 페이지 번호
+     * @param pageSize 페이지 크기
+     * @return
+     */
+    PagingResultDto<PostResponse> getPostsLikesDesc(Integer startOffset, Integer pageSize);
+    /**
+     * 팔로우 대상이 작성한 게시글 좋아요순 조회
+     * @param usersId 인증 정보의 유저 식별자 값(null 허용)
+     * @param startOffset 조회 시작 페이지 번호
+     * @param pageSize 페이지 크기
+     * @return
+     */
+    PagingResultDto<PostResponse> getFollwingPostLikesDesc(Integer usersId, Integer startOffset, Integer pageSize);
 }
