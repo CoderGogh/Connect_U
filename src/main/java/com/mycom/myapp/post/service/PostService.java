@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import java.security.Principal;
 
 public interface PostService {
-    PostResponse createPost(CreatePostRequest request, Principal principal);
+    PostResponse createPost(CreatePostRequest request, Integer usersId);
     Page<PostResponse> listPosts(Pageable pageable);
     PostResponse getPost(Integer id);
     void deletePost(Integer id, Principal principal);
