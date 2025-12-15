@@ -9,6 +9,7 @@ import com.mycom.myapp.users.repository.UsersRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,15 +28,16 @@ public class PostLikeServiceImpl implements PostLikeService {
                 .users(users)
                 .post(post)
                 .build();
-        try {
-            postLikeRepository.save(postLike);
-        } catch (DataIntegrityViolationException e) {
-            throw new RuntimeException("이미 좋아요를 누른 게시글입니다.");
-        }
+        postLikeRepository.save(postLike);
     }
 
     @Override
+    @Transactional
     public void deleteLike(Integer usersId, Integer postId) {
-
+        int ret = postLikeRepository.deleteByPostIdAndUsersId(postId, usersId);
+        if(ret > 1) {
+            // 좋아요 삭제 요청으로 실제 삭제된 레코드 수가 1개보다 많은 경우 롤백 & 예외 발생
+            throw new RuntimeException("좋아요 취소 도중 서버에서 문제가 발생했습니다.");
+        }
     }
 }
