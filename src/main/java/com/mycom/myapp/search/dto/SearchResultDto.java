@@ -1,6 +1,6 @@
 package com.mycom.myapp.search.dto;
 
-import com.mycom.myapp.post.entity.PostEntity;
+import com.mycom.myapp.post.entity.Post;
 import com.mycom.myapp.users.entity.Users;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
@@ -48,7 +48,7 @@ public class SearchResultDto {
 
     // 게시글 검색 결과 
 
-    public static SearchResultDto fromPosts(Page<PostEntity> page) {
+    public static SearchResultDto fromPosts(Page<Post> page) {
         return new SearchResultDto(
                 "post",
                 page.getContent(),

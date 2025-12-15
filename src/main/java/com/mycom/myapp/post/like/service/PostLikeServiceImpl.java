@@ -1,6 +1,6 @@
 package com.mycom.myapp.post.like.service;
 
-import com.mycom.myapp.post.entity.PostEntity;
+import com.mycom.myapp.post.entity.Post;
 import com.mycom.myapp.post.like.entity.PostLike;
 import com.mycom.myapp.post.like.repository.PostLikeRepository;
 import com.mycom.myapp.post.repository.PostRepository;
@@ -23,7 +23,7 @@ public class PostLikeServiceImpl implements PostLikeService {
     public void createLike(Integer usersId, Integer postId) {
         Users users = usersRepository.findById(usersId).orElseThrow(() ->
                 new RuntimeException("좋아요를 누른 회원 정보가 존재하지 않습니다."));
-        PostEntity postEntity = postRepository.findById(postId).orElseThrow(() ->
+        Post postEntity = postRepository.findById(postId).orElseThrow(() ->
                 new RuntimeException("좋아요를 추가할 게시글 정보가 존재하지 않습니다."));
         PostLike postLike = PostLike.builder()
                 .users(users)
@@ -41,7 +41,7 @@ public class PostLikeServiceImpl implements PostLikeService {
     @Transactional
     public void deleteLike(Integer usersId, Integer postId) {
 
-        PostEntity post = postRepository.findById(postId)
+        Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
 
         int deleted = postLikeRepository.deleteByPostIdAndUsersId(postId, usersId);

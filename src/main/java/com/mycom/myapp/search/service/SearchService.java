@@ -4,7 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.mycom.myapp.post.entity.PostEntity;
+import com.mycom.myapp.post.entity.Post;
 import com.mycom.myapp.post.repository.PostRepository;
 import com.mycom.myapp.search.dto.SearchResultDto;
 import com.mycom.myapp.users.entity.Users;
@@ -40,7 +40,7 @@ public class SearchService {
     }
 
     private SearchResultDto searchPosts(String keyword, Pageable pageable) {
-        Page<PostEntity> postPage =
+        Page<Post> postPage =
             postRepository.searchByTitleOrContent(pageable, keyword);
 
         return SearchResultDto.fromPosts(postPage);

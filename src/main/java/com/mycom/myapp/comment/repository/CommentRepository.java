@@ -9,13 +9,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.mycom.myapp.comment.entity.Comment;
-import com.mycom.myapp.post.entity.PostEntity;
+import com.mycom.myapp.post.entity.Post;
 import com.mycom.myapp.users.entity.Users;
 
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
 
 	// 게시글의 전체 댓글 조회 (삭제되지 않은 것만)
-	List<Comment> findByPostEntityAndIsDeletedFalseOrderByCreatedAtAsc(PostEntity postEntity);
+	List<Comment> findByPostEntityAndIsDeletedFalseOrderByCreatedAtAsc(Post postEntity);
 
 	// 특정 댓글의 자식 댓글 조회
 	List<Comment> findByParentCommentAndIsDeletedFalseOrderByCreatedAtAsc(Comment parentComment);
@@ -26,7 +26,7 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
 
 	// 페이징
 	Page<Comment> findByPostEntityAndParentCommentIsNullAndIsDeletedFalse(
-		PostEntity postEntity, Pageable pageable
+            Post postEntity, Pageable pageable
 	);
 	
 	
@@ -39,5 +39,5 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
 		      and c.parentComment is null
 		      and (c.isDeleted = false or c.childCount > 0)
 		""")
-		Page<Comment> findParentCommentsForTree(@Param("postEntity") PostEntity postEntity, Pageable pageable);
+		Page<Comment> findParentCommentsForTree(@Param("postEntity") Post postEntity, Pageable pageable);
 }

@@ -1,6 +1,6 @@
 package com.mycom.myapp.post.like.entity;
 
-import com.mycom.myapp.post.entity.PostEntity;
+import com.mycom.myapp.post.entity.Post;
 import com.mycom.myapp.users.entity.Users;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -28,7 +28,7 @@ public class PostLike implements Persistable<PostLikeKey> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     @MapsId("postId")    // PostLikeKey.postId 매핑
-    private PostEntity postEntity;
+    private Post postEntity;
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
@@ -38,7 +38,7 @@ public class PostLike implements Persistable<PostLikeKey> {
     private boolean isNew = true;
 
     @Builder
-    public PostLike(Users users, PostEntity postEntity) {
+    public PostLike(Users users, Post postEntity) {
         this.users = users;
         this.postEntity = postEntity;
 

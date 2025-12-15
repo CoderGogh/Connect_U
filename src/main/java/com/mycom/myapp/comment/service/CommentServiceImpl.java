@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.mycom.myapp.post.entity.PostEntity;
+import com.mycom.myapp.post.entity.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -45,7 +45,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentResponseDto createComment(CommentCreateRequestDto dto, Integer userId) {
 
-        PostEntity postEntity = postRepository.findById(dto.getPostId())
+        Post postEntity = postRepository.findById(dto.getPostId())
                 .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
 
         Users user = usersRepository.findById(userId)
@@ -80,7 +80,7 @@ public class CommentServiceImpl implements CommentService {
             Pageable pageable,
             String sort
     ) {
-        PostEntity postEntity = postRepository.findById(postId)
+        Post postEntity = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
 
         // ⭐ 여기서 정렬 적용

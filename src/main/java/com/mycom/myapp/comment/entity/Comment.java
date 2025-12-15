@@ -2,7 +2,7 @@ package com.mycom.myapp.comment.entity;
 
 import java.time.LocalDateTime;
 
-import com.mycom.myapp.post.entity.PostEntity;
+import com.mycom.myapp.post.entity.Post;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -25,7 +25,7 @@ public class Comment {
     // 게시글
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
-    private PostEntity postEntity;
+    private Post postEntity;
 
     // 작성자
     @ManyToOne(fetch = FetchType.LAZY)
@@ -64,7 +64,7 @@ public class Comment {
     private LocalDateTime deletedAt;
 
     @Builder
-    public Comment(PostEntity postEntity, Users users, Comment parentComment, String content) {
+    public Comment(Post postEntity, Users users, Comment parentComment, String content) {
         this.postEntity = postEntity;
         this.users = users;
         this.parentComment = parentComment;
