@@ -8,16 +8,17 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.domain.Persistable;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PostLike {
+public class PostLike implements Persistable<PostLikeKey> {
 
     @EmbeddedId
-    private PostLikeKey id = new PostLikeKey();  // 기본 빈 객체
+    private PostLikeKey id;  // 기본 빈 객체
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id", nullable = false)
@@ -33,6 +34,9 @@ public class PostLike {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Transient
+    private boolean isNew = true;
+
     @Builder
     public PostLike(Users users, Post post) {
         this.users = users;
@@ -43,5 +47,18 @@ public class PostLike {
                 users.getUsersId(),   // Integer
                 post.getId()          // Integer
         );
+    }
+
+    @Override
+    public boolean isNew() {
+        return this.isNew;
+    }
+
+    @PostLoad
+    @PrePersist
+    void markNotNew() {
+        // 1. 로딩된 엔티티는 '새 엔티티'가 아님을 표기
+        // 2. 동일 트랜잭션에서 동일한 post_like 엔티티에 대해 중복 insert 시도를 막기 위해 false 설정
+        this.isNew = false;
     }
 }
