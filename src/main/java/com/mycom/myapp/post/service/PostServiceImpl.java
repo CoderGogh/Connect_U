@@ -1,5 +1,6 @@
 package com.mycom.myapp.post.service;
 
+import com.mycom.myapp.common.PagingResultDto;
 import com.mycom.myapp.post.dto.*;
 import com.mycom.myapp.post.entity.PostEntity;
 import com.mycom.myapp.post.image.entity.PostImage;
@@ -42,33 +43,24 @@ public class PostServiceImpl implements PostService {
     // ================= 게시글 목록 =================
     @Override
     @Transactional
-    public PostPageResponse listPosts(Pageable pageable) {
+    public PagingResultDto<PostResponse> listPosts(Pageable pageable) {
+        Page<PostEntity> page = postRepository.findByIsDeletedFalseOrderByCreatedAtDesc(pageable);
 
-        Page<PostEntity> page = postRepository
-                .findByIsDeletedFalseOrderByCreatedAtDesc(pageable);
-
-        List<PostSummaryResponse> posts = page.getContent()
+        List<PostResponse> content = page.getContent()
                 .stream()
-                .map(this::toSummaryDto)
+                .map(this::toDto)
                 .toList();
 
-        return new PostPageResponse(
-                posts,
-                page.getNumber(),
-                page.getSize(),
-                page.getTotalElements(),
-                page.getTotalPages()
-        );
+        // 총 데이터 수를 page.getTotalElements()로 전달
+        return new PagingResultDto<>(content, page.getTotalElements());
     }
+
 
     // ================= 게시글 생성 =================
     @Override
     @Transactional
     public PostResponse createPost(CreatePostRequest request, Principal principal) {
-
-        if (principal == null) {
-            throw new IllegalArgumentException("Authentication required");
-        }
+        if (principal == null) throw new IllegalArgumentException("Authentication required");
 
         Users user = usersRepository.findByEmailForLogin(principal.getName())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -86,28 +78,19 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public PostImageDto uploadPostImage(Integer postId, MultipartFile file, Principal principal) throws Exception {
-
-        if (storageClient == null) {
-            throw new IllegalStateException("StorageClient bean not configured");
-        }
+        if (storageClient == null) throw new IllegalStateException("StorageClient bean not configured");
 
         PostEntity post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));
 
-        if (post.getIsDeleted()) {
-            throw new IllegalStateException("삭제된 게시글입니다.");
-        }
-
-        if (principal == null || !principal.getName().equals(post.getUsers().getEmail())) {
+        if (post.getIsDeleted()) throw new IllegalStateException("삭제된 게시글입니다.");
+        if (principal == null || !principal.getName().equals(post.getUsers().getEmail()))
             throw new SecurityException("Not authorized");
-        }
 
         Integer maxSeq = postImageRepository.findMaxSeqByPost(post);
         int nextSeq = (maxSeq == null ? 0 : maxSeq + 1);
 
-        if (nextSeq >= 5) {
-            throw new IllegalStateException("이미지는 최대 5장까지 업로드할 수 있습니다.");
-        }
+        if (nextSeq >= 5) throw new IllegalStateException("이미지는 최대 5장까지 업로드할 수 있습니다.");
 
         String imageKey = "post/" + postId + "/" + UUID.randomUUID();
         UploadResult uploadResult = storageClient.upload(file.getBytes(), imageKey);
@@ -128,21 +111,32 @@ public class PostServiceImpl implements PostService {
         );
     }
 
-    // ================= DTO 변환 =================
-    private PostSummaryResponse toSummaryDto(PostEntity post) {
-        return new PostSummaryResponse(
-                post.getId(),
-                post.getTitle(),
-                post.getUsers().getNickname(),
-                post.getLikeCount(),
-                post.getCreatedAt()
-        );
+    // ================= 게시글 단건 조회 =================
+    @Override
+    @Transactional
+    public PostResponse getPost(Integer id) {
+        PostEntity post = postRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+        return toDto(post);
     }
 
+    // ================= 게시글 삭제 =================
+    @Override
+    @Transactional
+    public void deletePost(Integer id, Principal principal) {
+        PostEntity post = postRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+
+        if (!post.getUsers().getEmail().equals(principal.getName()))
+            throw new SecurityException("Not authorized");
+
+        post.softDelete();
+        postRepository.save(post);
+    }
+
+    // ================= DTO 변환 =================
     private PostResponse toDto(PostEntity post) {
-
         PostResponse dto = new PostResponse();
-
         dto.setId(post.getId());
         dto.setAuthorId(post.getUsers().getUsersId());
         dto.setAuthorUsername(post.getUsers().getNickname());

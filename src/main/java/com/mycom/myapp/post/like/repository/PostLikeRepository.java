@@ -1,13 +1,13 @@
 package com.mycom.myapp.post.like.repository;
 
 import com.mycom.myapp.post.like.entity.PostLike;
-import com.mycom.myapp.post.like.entity.PostLikeId;
+import com.mycom.myapp.post.like.entity.PostLikeKey;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface PostLikeRepository extends JpaRepository<PostLike, PostLikeId> {
+public interface PostLikeRepository extends JpaRepository<PostLike, PostLikeKey> {
 
     boolean existsByPostEntity_IdAndUsers_UsersId(Integer postId, Integer usersId);
 

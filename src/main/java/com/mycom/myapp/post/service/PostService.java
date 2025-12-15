@@ -13,7 +13,6 @@ public interface PostService {
 
     /**
      * 게시글 생성
-     * - 인증된 사용자(Principal) 기준으로 작성자 식별
      */
     PostResponse createPost(CreatePostRequest request, Principal principal);
 
@@ -29,13 +28,11 @@ public interface PostService {
 
     /**
      * 게시글 삭제 (soft delete)
-     * - 작성자 본인만 가능
      */
     void deletePost(Integer id, Principal principal);
 
     /**
-     * 게시글 이미지 업로드 (2번째 Step API)
-     * - 게시글 생성 후 이미지 개별 업로드
+     * 게시글 이미지 업로드
      */
     PostImageDto uploadPostImage(
             Integer postId,

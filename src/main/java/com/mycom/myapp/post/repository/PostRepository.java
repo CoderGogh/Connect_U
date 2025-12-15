@@ -23,4 +23,7 @@ public interface PostRepository extends JpaRepository<PostEntity, Integer> {
     );
 
     Page<PostEntity> findByIsDeletedFalse(Pageable pageable);
+
+    // findByIsDeletedFalseOrderByCreatedAtDesc
+    Page<PostEntity> findByIsDeletedFalseOrderByCreatedAtDesc(Pageable pageable);
 }
