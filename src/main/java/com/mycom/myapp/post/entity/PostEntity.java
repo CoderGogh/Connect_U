@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "post")
 @Getter
@@ -17,7 +16,7 @@ public class PostEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private int id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "users_id", nullable = false)
@@ -30,9 +29,11 @@ public class PostEntity {
     @Column(nullable = false)
     private String content;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer likeCount = 0;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isDeleted = false;
 
