@@ -26,4 +26,33 @@
 .feed-loader.active { display: block; }
 .post-owner-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
 .post-owner-actions .cu-btn { padding: 8px 10px; font-size: 13px; }
+.comment-module { margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--cu-border); }
+.comment-form textarea { width: 100%; min-height: 80px; padding: 10px; border: 1px solid var(--cu-border); border-radius: var(--cu-radius-sm); font-family: inherit; }
+.comment-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+.comment-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.comment-item { border: 1px solid var(--cu-border); border-radius: var(--cu-radius-sm); padding: 10px; background: #f9fafb; }
+.comment-head { display: flex; justify-content: space-between; align-items: center; color: var(--cu-muted); font-size: 12px; }
+.comment-body { margin: 6px 0; color: #111827; line-height: 1.5; }
+.comment-body.comment-deleted { color: var(--cu-muted); }
+.comment-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.comment-actions button { padding: 6px 8px; border-radius: var(--cu-radius-sm); border: 1px solid var(--cu-border); background: #fff; cursor: pointer; font-weight: 600; }
+.comment-actions button:disabled { cursor: not-allowed; opacity: 0.6; }
+.comment-empty { color: var(--cu-muted); font-size: 13px; padding: 6px 0; }
+.comment-pagination { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.comment-page-btn { padding: 6px 8px; border: 1px solid var(--cu-border); background: #fff; border-radius: var(--cu-radius-sm); cursor: pointer; }
+.comment-page-btn:disabled { background: #eef2ff; color: var(--cu-primary-strong); cursor: default; }
+.reply-form { margin-top: 8px; }
+.reply-form textarea { width: 100%; min-height: 70px; padding: 8px; border: 1px solid var(--cu-border); border-radius: var(--cu-radius-sm); }
+.comment-children { margin-top: 6px; display: flex; flex-direction: column; gap: 6px; }
+.comment-owner-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px; flex-wrap: wrap; }
+.comment-owner-actions .cu-btn {
+    padding: 8px 10px; /* 좋아요 버튼과 동일 패딩 */
+    font-size: 14px; /* 좋아요 버튼과 동일한 기본 글자 크기 */
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.2;
+}
+.edit-form { margin-top: 6px; }
+.edit-form textarea { width: 100%; min-height: 70px; padding: 8px; border: 1px solid var(--cu-border); border-radius: var(--cu-radius-sm); }
 @media (max-width: 1024px) { .search-bar { flex-direction: column; } .search-bar button { width: 100%; } .sort-options { flex-wrap: wrap; } }

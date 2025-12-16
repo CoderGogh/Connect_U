@@ -10,6 +10,7 @@
     const existingImages = document.getElementById('existing-images');
     const errorBox = document.getElementById('post-error');
     const form = document.getElementById('post-form');
+    const submitBtn = document.getElementById('post-submit');
 
     function showError(msg) {
         if (!errorBox) return;
@@ -137,6 +138,9 @@
 
     if (form) {
         form.addEventListener('submit', submitForm);
+    }
+    if (submitBtn) {
+        submitBtn.addEventListener('click', submitForm);
     }
 
     fetchPost();
