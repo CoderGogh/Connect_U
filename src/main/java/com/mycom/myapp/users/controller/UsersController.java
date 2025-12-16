@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,5 +44,12 @@ public class UsersController {
     public ResponseEntity<Void> update(HttpServletRequest request, @CurrentUsersId Integer usersId, @RequestBody UsersRequestDto usersRequestDto) throws ServletException {
         usersService.update(request, usersId, usersRequestDto);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(path = "/images", consumes = "multipart/form-data")
+    @Operation(summary = "회원 프로필 이미지(1개) 업로드")
+    public ResponseEntity<String> uploadImage(@RequestPart("file") MultipartFile file,
+                                              @CurrentUsersId Integer usersId) throws Exception {
+        return ResponseEntity.ok(usersService.uploadUsersImage(usersId, file));
     }
 }

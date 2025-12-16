@@ -1,6 +1,8 @@
 package com.mycom.myapp.users.service;
 
 import com.mycom.myapp.common.PagingResultDto;
+import com.mycom.myapp.storage.StorageClient;
+import com.mycom.myapp.storage.UploadResult;
 import com.mycom.myapp.users.dto.UsersListResponseDto;
 import com.mycom.myapp.users.dto.UsersRequestDto;
 import com.mycom.myapp.users.dto.UsersResponseDto;
@@ -15,9 +17,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +29,7 @@ public class UsersServiceImpl implements UsersService {
     private final int USERS_MAX_PAGE_SIZE = 100;
     private final UsersRepository usersRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final StorageClient storageClient;
 
     /**
      * Users -> UsersResponseDto
@@ -87,6 +92,18 @@ public class UsersServiceImpl implements UsersService {
             list.add(dto);
         }
         return list;
+    }
+
+    @Override
+    public String uploadUsersImage(Integer usersId, MultipartFile file) throws Exception {
+        if(storageClient == null) throw new IllegalStateException("Storage client not initialized");
+        Users users = usersRepository.findByIdIsDeletedFalse(usersId).orElseThrow(() ->
+                new RuntimeException("users not found"));
+        String imageKey = "users/"+usersId+"/"+ UUID.randomUUID();
+        UploadResult uploadResult = storageClient.upload(file.getBytes(), imageKey);
+        users.updateImageKey(imageKey);
+        usersRepository.save(users);
+        return imageKey;
     }
 
     @Override
