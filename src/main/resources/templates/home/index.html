@@ -51,8 +51,10 @@
             </div>
 
             <div class="post-feed">
-                <div class="empty" id="post-empty">게시글을 불러오는 중입니다.</div>
                 <div id="post-list" class="post-list" aria-live="polite"></div>
+                <div id="feed-loader" class="feed-loader">불러오는 중...</div>
+                <div class="empty" id="post-empty">게시글을 불러오는 중입니다.</div>
+                <div id="feed-sentinel" aria-hidden="true"></div>
             </div>
         </section>
     </section>
