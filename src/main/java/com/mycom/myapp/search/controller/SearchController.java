@@ -1,5 +1,6 @@
 package com.mycom.myapp.search.controller;
 
+import com.mycom.myapp.annotation.CurrentUsersId;
 import com.mycom.myapp.common.PagingResultDto;
 import com.mycom.myapp.post.dto.PostResponse;
 import com.mycom.myapp.post.service.PostService;
@@ -29,7 +30,7 @@ public class SearchController {
     }
     @GetMapping("/post")
     @Operation(summary = "키워드 기반 게시글 제목/본문을 검색")
-    public ResponseEntity<PagingResultDto<PostResponse>> searchPostByKeyword(@RequestParam("keyword") String keyword, @RequestParam("page") Integer startOffset, @RequestParam("size") Integer pageSize) {
-        return ResponseEntity.ok(postService.getPostListByKeyword(keyword, startOffset, pageSize));
+    public ResponseEntity<PagingResultDto<PostResponse>> searchPostByKeyword(@CurrentUsersId(required = false) Integer usersId, @RequestParam("keyword") String keyword, @RequestParam("page") Integer startOffset, @RequestParam("size") Integer pageSize) {
+        return ResponseEntity.ok(postService.getPostListByKeyword(usersId, keyword, startOffset, pageSize));
     }
 }

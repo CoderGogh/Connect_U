@@ -8,6 +8,7 @@ import com.mycom.myapp.post.dto.PostResponse;
 import com.mycom.myapp.post.entity.Post;
 import com.mycom.myapp.post.image.entity.PostImage;
 import com.mycom.myapp.post.image.repository.PostImageRepository;
+import com.mycom.myapp.post.like.repository.PostLikeRepository;
 import com.mycom.myapp.post.repository.PostRepository;
 import com.mycom.myapp.users.entity.Users;
 import com.mycom.myapp.users.repository.UsersRepository;
@@ -24,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -35,6 +37,7 @@ public class PostServiceImpl implements PostService {
     private final UsersRepository usersRepository;
     private final FollowRepository followRepository;
     private final StorageClient storageClient;
+    private final PostLikeRepository postLikeRepository;
 
     /**
      * 게시글 페이징 시 페이지 크기 값 검증
@@ -240,31 +243,50 @@ public class PostServiceImpl implements PostService {
         Pageable pageable = PageRequest.of(startOffset, pageSize);
 
         List<Integer> followingUsersIdList = followRepository.findAllByUserSrc(usersId);
+
         Page<Post> followingPosts = postRepository.findActiveFollwingPostsOrderByCreatedAtDesc(pageable, followingUsersIdList);
+        Set<Integer> likedPostIdSet = postLikeRepository.findLikedPostIdList(followingPosts.getContent().stream().map(Post::getId).toList(), usersId);
         List<PostResponse> followingPostslist = followingPosts.stream().map(this::toDto).toList();
+        for(PostResponse p : followingPostslist){
+            if(likedPostIdSet.contains(p.getId())) {
+                p.setIsLiked(true);
+            }
+        }
 
         return new PagingResultDto<>(followingPostslist, followingPosts.getTotalElements());
     }
 
     @Override
-    public PagingResultDto<PostResponse> getPostsLatest(Integer startOffset, Integer pageSize) {
+    public PagingResultDto<PostResponse> getPostsLatest(Integer usersId, Integer startOffset, Integer pageSize) {
         pageSize = verifyPostsPageSize(pageSize);
         startOffset = verifyPostsStartOffset(startOffset);
         Pageable pageable = PageRequest.of(startOffset, pageSize);
 
         // 비로그인 사용자의 경우 전체 최신순 조회만 제공
         Page<Post> posts = postRepository.findActiveOrderByCreatedAtDesc(pageable);
+        Set<Integer> likedPostIdSet = postLikeRepository.findLikedPostIdList(posts.getContent().stream().map(Post::getId).toList(), usersId);
         List<PostResponse> list = posts.stream().map(this::toDto).toList();
+        for(PostResponse p : list){
+            if(likedPostIdSet.contains(p.getId())) {
+                p.setIsLiked(true);
+            }
+        }
         return new PagingResultDto<>(list, posts.getTotalElements());
     }
 
     @Override
-    public PagingResultDto<PostResponse> getPostsLikesDesc(Integer startOffset, Integer pageSize) {
+    public PagingResultDto<PostResponse> getPostsLikesDesc(Integer usersId, Integer startOffset, Integer pageSize) {
         pageSize = verifyPostsPageSize(pageSize);
         startOffset = verifyPostsStartOffset(startOffset);
         Pageable pageable = PageRequest.of(startOffset, pageSize);
         Page<Post> posts = postRepository.findActiveOrderByLikeCountDesc(pageable);
+        Set<Integer> likedPostIdSet = postLikeRepository.findLikedPostIdList(posts.getContent().stream().map(Post::getId).toList(), usersId);
         List<PostResponse> list = posts.stream().map(this::toDto).toList();
+        for(PostResponse p : list){
+            if(likedPostIdSet.contains(p.getId())) {
+                p.setIsLiked(true);
+            }
+        }
         return new PagingResultDto<>(list, posts.getTotalElements());
     }
 
@@ -275,7 +297,13 @@ public class PostServiceImpl implements PostService {
         Pageable pageable = PageRequest.of(startOffset, pageSize);
         List<Integer> followingUsersIdList = followRepository.findAllByUserSrc(usersId);
         Page<Post> followingPosts = postRepository.findActiveFollowingPostsOrderByLikeCountDesc(pageable, followingUsersIdList);
+        Set<Integer> likedPostIdSet = postLikeRepository.findLikedPostIdList(followingPosts.getContent().stream().map(Post::getId).toList(), usersId);
         List<PostResponse> followingPostslist = followingPosts.stream().map(this::toDto).toList();
+        for(PostResponse p : followingPostslist){
+            if(likedPostIdSet.contains(p.getId())) {
+                p.setIsLiked(true);
+            }
+        }
         return new PagingResultDto<>(followingPostslist, followingPosts.getTotalElements());
     }
 
@@ -344,13 +372,19 @@ public class PostServiceImpl implements PostService {
 
 
     @Override
-    public PagingResultDto<PostResponse> getPostListByKeyword(String keyword, Integer startOffset, Integer pageSize) {
+    public PagingResultDto<PostResponse> getPostListByKeyword(Integer usersId, String keyword, Integer startOffset, Integer pageSize) {
         pageSize = verifyPostsPageSize(pageSize);
         startOffset = verifyPostsStartOffset(startOffset);
         Pageable pageable = PageRequest.of(startOffset, pageSize);
 
         Page<Post> postPage = postRepository.searchByTitleOrContent(pageable, keyword);
+        Set<Integer> likedPostIdSet = postLikeRepository.findLikedPostIdList(postPage.getContent().stream().map(Post::getId).toList(), usersId);
         List<PostResponse> list = postPage.stream().map(this::toDto).toList();
+        for(PostResponse p : list){
+            if(likedPostIdSet.contains(p.getId())) {
+                p.setIsLiked(true);
+            }
+        }
         return new PagingResultDto<>(list, postPage.getTotalElements());
     }
 }

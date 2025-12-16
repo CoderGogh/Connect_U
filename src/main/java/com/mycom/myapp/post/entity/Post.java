@@ -38,9 +38,6 @@ public class Post {
     @Column(nullable = false)
     private Integer likeCount = 0;
 
-    @OneToMany(mappedBy = "postEntity")
-    private List<PostLike> postLikes = new ArrayList<>();
-
     @Builder.Default
     @Column(nullable = false)
     private Boolean isDeleted = false;

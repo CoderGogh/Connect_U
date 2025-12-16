@@ -88,10 +88,11 @@ public class PostController {
             """
     )
     public ResponseEntity<PagingResultDto<PostResponse>> getActivePostsLatest(
+            @CurrentUsersId(required = false) Integer usersId,
             @RequestParam(value = "page", defaultValue = "0") Integer startOffset,
             @RequestParam(value = "size", defaultValue = "1") Integer pageSize
     ) {
-        return ResponseEntity.ok(postService.getPostsLatest(startOffset, pageSize));
+        return ResponseEntity.ok(postService.getPostsLatest(usersId, startOffset, pageSize));
     }
 
     @GetMapping("/following-latest")
@@ -116,10 +117,11 @@ public class PostController {
         description = "게시글을 좋아요 개수 기준 내림차순으로 조회합니다."
     )
     public ResponseEntity<PagingResultDto<PostResponse>> getActivePostLikeCountDesc(
+            @CurrentUsersId(required = false) Integer usersId,
             @RequestParam(value = "page", defaultValue = "0") Integer startOffset,
             @RequestParam(value = "size", defaultValue = "1") Integer pageSize
     ) {
-        return ResponseEntity.ok(postService.getPostsLikesDesc(startOffset, pageSize));
+        return ResponseEntity.ok(postService.getPostsLikesDesc(usersId, startOffset, pageSize));
     }
 
     @GetMapping("/following-likes")

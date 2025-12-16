@@ -20,7 +20,7 @@ public class PostResponse {
     private String content;
 
     private Integer likeCount;
-    private Boolean isLiked;
+    private Boolean isLiked = false;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
