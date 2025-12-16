@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: base(~{::title}, '', ~{::main}, ~{::extraHead}, ~{::extraScripts}, ~{::topActions})}">
+<head>
+    <title>게시글 작성 | Connect U</title>
+    <th:block th:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/posts.css}">
+    </th:block>
+</head>
+<body>
+<main th:fragment="main">
+    <section class="post-form-panel" data-mode="create">
+        <h1 class="post-form-title">게시글 작성</h1>
+        <form id="post-form" novalidate>
+            <div class="form-group">
+                <label for="title">제목</label>
+                <input type="text" id="title" class="cu-input" required placeholder="제목을 입력하세요">
+            </div>
+            <div class="form-group">
+                <label for="content">본문</label>
+                <textarea id="content" class="cu-textarea" rows="8" required placeholder="내용을 입력하세요"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="images">이미지 (최대 5장, 5MB 이하)</label>
+                <input type="file" id="images" class="cu-input" accept="image/*" multiple>
+                <div class="post-hint">이미지 업로드는 선택입니다.</div>
+            </div>
+            <div id="post-error" class="cu-alert" style="display:none;"></div>
+            <div class="post-actions">
+                <button type="submit" class="cu-btn">작성</button>
+                <a class="cu-btn secondary" th:href="@{/}">취소</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<th:block th:fragment="extraScripts">
+    <script th:src="@{/js/posts-form.js}"></script>
+</th:block>
+</body>
+</html>

@@ -35,20 +35,23 @@
         </aside>
 
         <section class="cu-main-col">
-            <div class="home-search">
-                <form id="search-form" th:action="@{/search}" method="get" class="search-bar">
-                    <input type="text" id="keyword" name="keyword" placeholder="검색어를 입력하세요 (2자 이상)"
-                           aria-label="검색어" required>
-                    <input type="hidden" name="page" value="0">
-                    <input type="hidden" name="size" value="10">
-                    <button type="submit" class="cu-btn">검색</button>
-                </form>
+    <div class="home-search">
+        <form id="search-form" th:action="@{/search}" method="get" class="search-bar">
+            <input type="text" id="keyword" name="keyword" placeholder="검색어를 입력하세요 (2자 이상)"
+                   aria-label="검색어" required>
+            <input type="hidden" name="page" value="0">
+            <input type="hidden" name="size" value="10">
+            <button type="submit" class="cu-btn">검색</button>
+        </form>
 
-                <div class="sort-options" role="group" aria-label="정렬">
-                    <button type="button" class="sort-btn active" data-sort="latest">최신순</button>
-                    <button type="button" class="sort-btn" data-sort="likes">좋아요순</button>
-                </div>
+        <div class="home-actions">
+            <div class="sort-options" role="group" aria-label="정렬">
+                <button type="button" class="sort-btn active" data-sort="latest">최신순</button>
+                <button type="button" class="sort-btn" data-sort="likes">좋아요순</button>
             </div>
+            <a class="cu-btn is-hidden" id="btn-create-post" th:href="@{/posts/new}">게시글 작성</a>
+        </div>
+    </div>
 
             <div class="post-feed">
                 <div id="post-list" class="post-list" aria-live="polite"></div>

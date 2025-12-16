@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loggedInActions = document.getElementById('profile-actions-logged-in');
     const guestActions = document.getElementById('profile-actions-guest');
     const logoutForm = document.getElementById('logout-form');
+    const createBtn = document.getElementById('btn-create-post');
 
     const state = {
         sort: 'latest',
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         followingDone: false,
         generalDone: false,
         pageSize: 10,
+        currentUserId: null,
     };
 
     function setLoader(active) {
@@ -44,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
             : '';
 
         const authorLink = post.authorId ? `<a href="/users/${post.authorId}">${post.authorUsername || '익명'}</a>` : (post.authorUsername || '익명');
+        const isOwner = state.currentUserId && post.authorId && parseInt(state.currentUserId, 10) === parseInt(post.authorId, 10);
+
         card.innerHTML = `
             <div class="post-meta">
                 <span>${authorLink}</span>
@@ -60,6 +64,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="comment-module" data-id="${post.id || ''}" style="display:none;">
                 <div class="comment-header">댓글 영역 (추후 API 연동)</div>
             </div>
+            ${isOwner ? `
+            <div class="post-owner-actions">
+                <a class="cu-btn secondary" href="/posts/${post.id || ''}/edit">수정</a>
+                <button class="cu-btn danger delete-post-btn" data-id="${post.id || ''}" type="button">삭제</button>
+            </div>` : ''}
         `;
         postList.appendChild(card);
     }
@@ -152,6 +161,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function deletePost(button) {
+        const postId = button.dataset.id;
+        if (!postId) return;
+        const confirmed = window.confirm('게시글을 삭제하시겠습니까?');
+        if (!confirmed) return;
+        try {
+            const res = await window.cu.apiFetch(`/api/posts/${postId}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error('삭제에 실패했습니다.');
+            alert('게시글이 삭제되었습니다.');
+            button.closest('.post-card')?.remove();
+        } catch (err) {
+            alert(err.message || '게시글 삭제 중 오류가 발생했습니다.');
+        }
+    }
+
     function toggleComment(button) {
         const postId = button.dataset.id;
         if (!postId) return;
@@ -180,11 +204,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (messageEl) messageEl.textContent = data.email || '';
             if (loggedInActions) loggedInActions.classList.remove('is-hidden');
             if (guestActions) guestActions.classList.add('is-hidden');
+            state.currentUserId = data.usersId;
+            if (createBtn) createBtn.classList.remove('is-hidden');
         } catch (e) {
             if (nicknameEl) nicknameEl.textContent = 'Guest';
             if (messageEl) messageEl.textContent = '프로필 정보는 로그인 후 표시됩니다.';
             if (loggedInActions) loggedInActions.classList.add('is-hidden');
             if (guestActions) guestActions.classList.remove('is-hidden');
+            state.currentUserId = null;
+            if (createBtn) createBtn.classList.add('is-hidden');
         }
     }
 
@@ -236,6 +264,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 toggleLike(target);
             } else if (target.classList.contains('comment-btn')) {
                 toggleComment(target);
+            } else if (target.classList.contains('delete-post-btn')) {
+                deletePost(target);
             }
         });
     }

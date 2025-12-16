@@ -18,6 +18,7 @@
         pageSize: 10,
         posts: { page: 0, total: 0 },
         users: { page: 0, total: 0 },
+        currentUserId: null,
     };
 
     function switchTab(tab) {
@@ -55,6 +56,7 @@
                 const likeCount = typeof post.likeCount === 'number' ? post.likeCount : 0;
                 const heart = liked ? '❤️' : '🤍';
                 const authorLink = post.authorId ? `<a href="/users/${post.authorId}">${post.authorUsername || '익명'}</a>` : (post.authorUsername || '익명');
+                const isOwner = state.currentUserId && post.authorId && parseInt(state.currentUserId, 10) === parseInt(post.authorId, 10);
                 const imgSection = images.length
                     ? `<div class="post-images">${images.map((img) => `<img src="${img.imageUrl || ''}" alt="post image" style="max-width:100%;border-radius:8px;">`).join('')}</div>`
                     : '';
@@ -74,6 +76,11 @@
                     <div class="comment-module" data-id="${post.id || ''}" style="display:none;">
                         <div class="comment-header">댓글 영역 (추후 API 연동)</div>
                     </div>
+                    ${isOwner ? `
+                    <div class="post-owner-actions">
+                        <a class="cu-btn secondary" href="/posts/${post.id || ''}/edit">수정</a>
+                        <button class="cu-btn danger delete-post-btn" data-id="${post.id || ''}" type="button">삭제</button>
+                    </div>` : ''}
                 `;
                 postList.appendChild(card);
             });
@@ -161,7 +168,19 @@
         }
     }
 
-    function init() {
+    async function init() {
+        try {
+            const res = await window.cu.apiFetch('/api/users/my-info');
+            if (res.ok) {
+                const data = await res.json();
+                state.currentUserId = data.usersId;
+                window.searchCurrentUserId = data.usersId;
+            }
+        } catch (e) {
+            state.currentUserId = null;
+            window.searchCurrentUserId = null;
+        }
+
         tabButtons.forEach((btn) => btn.addEventListener('click', onTabClick));
         document.getElementById('search-form')?.addEventListener('submit', (e) => {
             if (!validateKeywordOrWarn()) {
@@ -206,6 +225,21 @@
         module.style.display = module.style.display === 'none' ? 'block' : 'none';
     }
 
+    async function deletePost(button) {
+        const postId = button.dataset.id;
+        if (!postId) return;
+        const confirmed = window.confirm('게시글을 삭제하시겠습니까?');
+        if (!confirmed) return;
+        try {
+            const res = await window.cu.apiFetch(`/api/posts/${postId}`, { method: 'DELETE' });
+            if (!res.ok) throw new Error('삭제에 실패했습니다.');
+            alert('게시글이 삭제되었습니다.');
+            button.closest('.post-card')?.remove();
+        } catch (err) {
+            alert(err.message || '게시글 삭제 중 오류가 발생했습니다.');
+        }
+    }
+
     if (postList) {
         postList.addEventListener('click', (e) => {
             const target = e.target.closest('button');
@@ -214,6 +248,8 @@
                 toggleLike(target);
             } else if (target.classList.contains('comment-btn')) {
                 toggleComment(target);
+            } else if (target.classList.contains('delete-post-btn')) {
+                deletePost(target);
             }
         });
     }

@@ -46,4 +46,15 @@ public class WebController {
         model.addAttribute("keyword", keyword);
         return "search/results";
     }
+
+    @GetMapping("/posts/new")
+    public String createPostPage() {
+        return "posts/create";
+    }
+
+    @GetMapping("/posts/{id}/edit")
+    public String editPostPage(@PathVariable("id") Long id, Model model) {
+        model.addAttribute("postId", id);
+        return "posts/edit";
+    }
 }
