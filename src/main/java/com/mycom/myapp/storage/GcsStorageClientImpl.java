@@ -64,4 +64,8 @@ public class GcsStorageClientImpl implements StorageClient {
             throw new StorageException("GCS exists check failed", e);
         }
     }
+    @Override
+    public String getPublicUrl(String key) {
+        return "https://storage.googleapis.com/" + bucketName + "/" + key;
+    }
 }

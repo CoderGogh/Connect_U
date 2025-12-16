@@ -11,13 +11,12 @@ import com.mycom.myapp.post.image.repository.PostImageRepository;
 import com.mycom.myapp.post.repository.PostRepository;
 import com.mycom.myapp.users.entity.Users;
 import com.mycom.myapp.users.repository.UsersRepository;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import com.mycom.myapp.storage.StorageClient;
 import com.mycom.myapp.storage.UploadResult;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -99,24 +98,42 @@ public class PostServiceImpl implements PostService {
     // ================= 이미지 업로드 =================
     @Override
     @Transactional
-    public PostImageDto uploadPostImage(Integer postId, MultipartFile file, Principal principal) throws Exception {
-        if (storageClient == null) throw new IllegalStateException("StorageClient bean not configured");
+    public PostImageDto uploadPostImage(
+            Integer postId,
+            MultipartFile file,
+            Principal principal
+    ) throws Exception {
+
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("이미지 파일이 비어 있습니다.");
+        }
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));
 
-        if (post.getIsDeleted()) throw new IllegalStateException("삭제된 게시글입니다.");
-        if (principal == null)  // || !principal.getName().equals(post.getUsers().getEmail()) 삭제 함 --> Controller/Security에 위임
-            throw new SecurityException("Not authorized");
+        // TODO: prod에서만 권한 체크(로컬 테스트용으로 하기 위함)
+        if (principal != null) {
+            if (!principal.getName().equals(post.getUsers().getEmail())) {
+                throw new SecurityException("Not authorized");
+            }
+        }
 
+
+        // 이미지 개수 제한
         Integer maxSeq = postImageRepository.findMaxSeqByPost(post);
         int nextSeq = (maxSeq == null ? 0 : maxSeq + 1);
+        if (nextSeq >= 5) {
+            throw new IllegalStateException("이미지는 최대 5장까지 업로드할 수 있습니다.");
+        }
 
-        if (nextSeq >= 5) throw new IllegalStateException("이미지는 최대 5장까지 업로드할 수 있습니다.");
+        //  imageKey 생성
+        String extension = extractExtension(file.getOriginalFilename());
+        String imageKey = "posts/" + postId + "/" + UUID.randomUUID() + "." + extension;
 
-        String imageKey = "post/" + postId + "/" + UUID.randomUUID();
+        //  GCS 업로드
         UploadResult uploadResult = storageClient.upload(file.getBytes(), imageKey);
 
+        //  DB 저장
         PostImage image = PostImage.builder()
                 .post(post)
                 .seq(nextSeq)
@@ -126,12 +143,17 @@ public class PostServiceImpl implements PostService {
 
         postImageRepository.save(image);
 
+        // Public URL 생성
+        String imageUrl = storageClient.getPublicUrl(imageKey);
+
+
         return new PostImageDto(
                 image.getId().getSeq(),
-                image.getImageKey(),
-                image.getId().getSeq()
+                imageKey,
+                imageUrl
         );
     }
+
 
     // ================= 게시글 단건 조회 =================
     @Override
@@ -174,8 +196,9 @@ public class PostServiceImpl implements PostService {
                 .map(img -> new PostImageDto(
                         img.getId().getSeq(),
                         img.getImageKey(),
-                        img.getId().getSeq()
+                        storageClient.getPublicUrl(img.getImageKey())
                 ))
+
                 .toList();
 
         dto.setImages(images);
@@ -226,6 +249,15 @@ public class PostServiceImpl implements PostService {
         Page<Post> followingPosts = postRepository.findActiveFollowingPostsOrderByLikeCountDesc(pageable, followingUsersIdList);
         List<PostResponse> followingPostslist = followingPosts.stream().map(this::toDto).toList();
         return new PagingResultDto<>(followingPostslist, followingPosts.getTotalElements());
+    }
+
+    // 확장자 유틸 정의
+    private String extractExtension(String originalFilename) {
+        if (originalFilename == null || !originalFilename.contains(".")) {
+            return "jpg"; // fallback
+        }
+        return originalFilename.substring(originalFilename.lastIndexOf('.') + 1)
+                .toLowerCase();
     }
 
     @Override
