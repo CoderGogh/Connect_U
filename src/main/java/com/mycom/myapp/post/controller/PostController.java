@@ -73,7 +73,7 @@ public class PostController {
         summary = "게시글 삭제",
         description = "게시글 작성자 본인만 게시글을 삭제할 수 있습니다. (Soft Delete)"
     )
-    public ResponseEntity<Void> deletePost(@PathVariable Integer id, Principal principal) {
+    public ResponseEntity<Void> deletePost(@PathVariable("id") Integer id, Principal principal) {
         postService.deletePost(id, principal);
         return ResponseEntity.noContent().build();
     }

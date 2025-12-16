@@ -94,10 +94,9 @@ public class CommentServiceImpl implements CommentService {
 
         List<Comment> parentComments = parentPage.getContent();
 
-     // ⭐ postId 기준 전체 댓글 조회 (depth 제한 없음)
+     // postId 기준 전체 댓글 조회
         List<Comment> allComments =
-                commentRepository.findByPostEntityAndIsDeletedFalseOrderByCreatedAtAsc(postEntity);
-
+        	    commentRepository.findByPostEntityOrderByCreatedAtAsc(postEntity);
 
 
         List<Integer> allIds = allComments.stream()

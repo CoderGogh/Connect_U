@@ -28,7 +28,7 @@ public class PostLikeController {
         description = "로그인한 사용자가 특정 게시글에 좋아요를 추가합니다."
     )
     public ResponseEntity<Void> createLike(
-            @PathVariable Integer postId,
+    		@PathVariable("postId") Integer postId,
             @CurrentUsersId Integer usersId
     ) {
         postLikeService.createLike(usersId, postId);
@@ -41,7 +41,7 @@ public class PostLikeController {
         description = "로그인한 사용자가 특정 게시글의 좋아요를 취소합니다."
     )
     public ResponseEntity<Void> deleteLike(
-            @PathVariable Integer postId,
+    		@PathVariable("postId") Integer postId,
             @CurrentUsersId Integer usersId
     ) {
         postLikeService.deleteLike(usersId, postId);
