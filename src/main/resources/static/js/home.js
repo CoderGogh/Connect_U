@@ -43,9 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
                   .join('')}</div>`
             : '';
 
+        const authorLink = post.authorId ? `<a href="/users/${post.authorId}">${post.authorUsername || '익명'}</a>` : (post.authorUsername || '익명');
         card.innerHTML = `
             <div class="post-meta">
-                <span>${post.authorUsername || '익명'}</span>
+                <span>${authorLink}</span>
                 <span>${created}</span>
             </div>
             <h3 class="post-title">${post.title || ''}</h3>

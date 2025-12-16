@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: base(~{::title}, '', ~{::main}, ~{::extraHead}, ~{::extraScripts}, ~{::topActions})}">
+<head>
+    <title>검색 결과 | Connect U</title>
+    <th:block th:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/home.css}">
+        <link rel="stylesheet" th:href="@{/css/search.css}">
+    </th:block>
+</head>
+<body>
+<main th:fragment="main">
+    <section class="search-page">
+        <form id="search-form" class="search-bar" th:action="@{/search}" method="get">
+            <input type="text" id="keyword" name="keyword" placeholder="검색어를 입력하세요 (2자 이상)" th:value="${keyword}" required>
+            <input type="hidden" name="page" value="0">
+            <input type="hidden" name="size" value="10">
+            <button type="submit" class="cu-btn">검색</button>
+        </form>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="posts">게시글</button>
+            <button class="tab-btn" data-tab="users">유저</button>
+        </div>
+
+        <div class="tab-panels">
+            <div class="tab-panel" id="tab-posts">
+                <div id="post-results" class="post-list"></div>
+                <div id="post-empty" class="empty">검색 결과가 없습니다.</div>
+                <div class="pagination" id="post-pagination"></div>
+            </div>
+            <div class="tab-panel is-hidden" id="tab-users">
+                <div id="user-results" class="user-list"></div>
+                <div id="user-empty" class="empty">검색 결과가 없습니다.</div>
+                <div class="pagination" id="user-pagination"></div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<th:block th:fragment="extraScripts">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.searchInitialKeyword = /*[[${keyword}]]*/ '';
+        /*]]>*/
+    </script>
+    <script th:src="@{/js/search.js}"></script>
+</th:block>
+</body>
+</html>

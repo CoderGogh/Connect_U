@@ -9,7 +9,7 @@
 </head>
 <body>
 <main th:fragment="main">
-    <section class="user-panel" th:with="userId=${#httpServletRequest.getAttribute('id')}" th:attr="data-user-id=${userId}">
+    <section class="user-panel" th:with="userId=${userId}" th:attr="data-user-id=${userId}">
         <div class="user-header">
             <div class="avatar placeholder" aria-hidden="true"></div>
             <div>
