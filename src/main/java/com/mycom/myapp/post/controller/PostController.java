@@ -6,8 +6,6 @@ import com.mycom.myapp.post.dto.CreatePostRequest;
 import com.mycom.myapp.post.dto.PostImageDto;
 import com.mycom.myapp.post.dto.PostResponse;
 import com.mycom.myapp.post.service.PostService;
-import com.mycom.myapp.post.dto.PostImageDto;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -17,9 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
-
-import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
@@ -157,15 +152,16 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
-    @PutMapping(path = "/{id}", consumes = {"multipart/form-data"})
+    @PutMapping("/{id}")
     public ResponseEntity<PostResponse> updatePost(
             @PathVariable("id") Integer postId,
-            @RequestPart("data") CreatePostRequest request,
-            @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages,
+            @RequestBody CreatePostRequest request,
             @RequestParam(value = "deleteImageSeqs", required = false) List<Integer> deleteImageSeqs,
             Principal principal
     ) throws Exception {
-        PostResponse updated = postService.updatePost(postId, request, deleteImageSeqs, newImages, principal);
+        // 텍스트 데이터는 JSON(@RequestBody)으로만 수정하고,
+        // 새 이미지 업로드는 별도의 /{id}/images multipart 엔드포인트를 사용하도록 통일
+        PostResponse updated = postService.updatePost(postId, request, deleteImageSeqs, null, principal);
         return ResponseEntity.ok(updated);
     }
 }

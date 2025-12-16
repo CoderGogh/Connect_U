@@ -44,7 +44,8 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return this.nickname;
+        // Spring Security에서 사용하는 username을 이메일로 통일
+        return this.email;
     }
     @Override
     public boolean isAccountNonExpired() {
