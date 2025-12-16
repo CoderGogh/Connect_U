@@ -1,5 +1,6 @@
 package com.mycom.myapp.comment.controller;
 
+import com.mycom.myapp.annotation.CurrentUsersId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -44,13 +45,11 @@ public class CommentController {
 	    @RequestParam(name = "size", defaultValue = "10") int size,
 	    @RequestParam(name = "sort", defaultValue = "latest") String sort,
 
-	    Authentication authentication
+	    @CurrentUsersId(required = false) Integer usersId
 	) {
-	    CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-	    Integer userId = userDetails.getId();
 
 	    Pageable pageable = PageRequest.of(page, size);
-	    return commentService.getCommentsByPost(postId, userId, pageable, sort);
+	    return commentService.getCommentsByPost(postId, usersId, pageable, sort);
 	}
 
 
@@ -61,21 +60,9 @@ public class CommentController {
 	)
 	public CommentResponseDto createComment(
 	        @RequestBody CommentCreateRequestDto dto,
-	        Authentication authentication
+	        @CurrentUsersId Integer usersId
 	) {
-	    Integer userId;
-
-	    if (authentication == null ||
-	        !(authentication.getPrincipal() instanceof CustomUserDetails)) {
-	        // ⭐ Swagger 테스트용 임시 처리
-	        userId = 1; // DB에 존재하는 users_id
-	    } else {
-	        CustomUserDetails userDetails =
-	                (CustomUserDetails) authentication.getPrincipal();
-	        userId = userDetails.getId();
-	    }
-
-	    return commentService.createComment(dto, userId);
+	    return commentService.createComment(dto, usersId);
 	}
 
 
@@ -84,13 +71,9 @@ public class CommentController {
 	public CommentResponseDto updateComment(
 	    @PathVariable("commentId") Integer commentId,
 	    @RequestParam(name = "content") String content,
-	    Authentication authentication
+	    @CurrentUsersId Integer usersId
 	) {
-	    CustomUserDetails userDetails =
-	            (CustomUserDetails) authentication.getPrincipal();
-	    Integer userId = userDetails.getId();
-
-	    return commentService.updateComment(commentId, content, userId);
+	    return commentService.updateComment(commentId, content, usersId);
 	}
 
 
@@ -99,13 +82,8 @@ public class CommentController {
 	@Operation(summary = "댓글 삭제", description = "댓글은 soft delete 처리되며, 작성자 본인만 삭제할 수 있습니다.")
 	public void deleteComment(
 	    @PathVariable("commentId") Integer commentId,
-	    Authentication authentication
+	    @CurrentUsersId Integer usersId
 	) {
-	    CustomUserDetails userDetails =
-	            (CustomUserDetails) authentication.getPrincipal();
-	    Integer userId = userDetails.getId();
-
-	    commentService.deleteComment(commentId, userId);
+	    commentService.deleteComment(commentId, usersId);
 	}
-
 }
