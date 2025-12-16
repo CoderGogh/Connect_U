@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: base(~{::title}, '', ~{::main}, ~{::extraHead}, ~{::extraScripts}, ~{::topActions})}">
+<head>
+    <title>프로필 수정 | Connect U</title>
+    <th:block th:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/user.css}">
+    </th:block>
+</head>
+<body>
+<main th:fragment="main">
+    <section class="user-panel">
+        <div class="user-header">
+            <div class="avatar placeholder" aria-hidden="true"></div>
+            <div>
+                <div class="user-name" id="edit-nickname-label">닉네임</div>
+                <div class="user-meta" id="edit-email-label">이메일</div>
+            </div>
+        </div>
+        <div class="user-body">
+            <form id="edit-form" class="user-form" novalidate>
+                <div class="form-group">
+                    <label for="nickname">닉네임</label>
+                    <input type="text" id="nickname" class="cu-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">비밀번호 (변경 시 입력)</label>
+                    <input type="password" id="password" class="cu-input" placeholder="변경하지 않으려면 비워두세요">
+                </div>
+                <div class="form-group">
+                    <label for="description">소개</label>
+                    <textarea id="description" class="cu-textarea" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="profileImage">프로필 이미지 (선택, 1장)</label>
+                    <input type="file" id="profileImage" class="cu-input" accept="image/*">
+                    <div class="user-meta" style="margin-top:6px;font-size:12px;">최대 1장, 5MB 이하</div>
+                </div>
+                <div id="edit-error" class="cu-alert" style="display:none;"></div>
+                <div class="user-actions">
+                    <button type="submit" class="cu-btn">저장</button>
+                    <a class="cu-btn secondary" th:href="@{/mypage}">취소</a>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+
+<th:block th:fragment="extraScripts">
+    <script th:src="@{/js/user-edit.js}"></script>
+</th:block>
+</body>
+</html>

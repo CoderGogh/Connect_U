@@ -137,10 +137,6 @@ public class UsersServiceImpl implements UsersService {
             String encodedPassword = bCryptPasswordEncoder.encode(dto.getPassword());
             users.updatePassword(encodedPassword);
         }
-        if(dto.getImageKey() != null) {
-            users.updateImageKey(dto.getImageKey());
-        }
-        request.logout();
     }
 
     @Override

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: base(~{::title}, '', ~{::main}, ~{::extraHead}, ~{::extraScripts}, ~{::topActions})}">
+<head>
+    <title>사용자 프로필 | Connect U</title>
+    <th:block th:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/user.css}">
+    </th:block>
+</head>
+<body>
+<main th:fragment="main">
+    <section class="user-panel" th:with="userId=${#httpServletRequest.getAttribute('id')}" th:attr="data-user-id=${userId}">
+        <div class="user-header">
+            <div class="avatar placeholder" aria-hidden="true"></div>
+            <div>
+                <div class="user-name" id="profile-nickname">닉네임</div>
+                <div class="user-meta" id="profile-email">이메일</div>
+            </div>
+        </div>
+        <div class="user-body">
+            <dl class="user-detail">
+                <dt>소개</dt>
+                <dd id="profile-description">-</dd>
+            </dl>
+        </div>
+    </section>
+</main>
+
+<th:block th:fragment="extraScripts">
+    <script th:src="@{/js/user-profile.js}"></script>
+</th:block>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: base(~{::title}, '', ~{::main}, ~{::extraHead}, ~{::extraScripts}, ~{::topActions})}">
+<head>
+    <title>마이페이지 | Connect U</title>
+    <th:block th:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/user.css}">
+    </th:block>
+</head>
+<body>
+<main th:fragment="main">
+    <section class="user-panel">
+        <div class="user-header">
+            <div class="avatar placeholder" aria-hidden="true"></div>
+            <div>
+                <div class="user-name" id="my-nickname">닉네임</div>
+                <div class="user-meta" id="my-email">이메일</div>
+            </div>
+        </div>
+        <div class="user-body">
+            <dl class="user-detail">
+                <dt>소개</dt>
+                <dd id="my-description">-</dd>
+            </dl>
+        </div>
+        <div class="user-actions">
+            <a class="cu-btn secondary" th:href="@{/mypage/edit}">프로필 수정</a>
+            <button class="cu-btn danger" id="btn-delete-account" type="button">회원 탈퇴</button>
+        </div>
+    </section>
+</main>
+
+<th:block th:fragment="extraScripts">
+    <script th:src="@{/js/user-mypage.js}"></script>
+</th:block>
+</body>
+</html>

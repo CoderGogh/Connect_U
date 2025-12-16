@@ -1,0 +1,15 @@
+.user-panel { background: #fff; border: 1px solid var(--cu-border); border-radius: var(--cu-radius); box-shadow: var(--cu-shadow); padding: 20px; max-width: 720px; margin: 0 auto; }
+.user-header { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
+.avatar.placeholder { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #d8e3ff, #e0e7ff); border: 1px solid var(--cu-border); }
+.user-name { font-weight: 700; font-size: 18px; }
+.user-meta { color: var(--cu-muted); font-size: 13px; }
+.user-body { margin-top: 8px; }
+.user-detail { display: grid; grid-template-columns: 120px 1fr; gap: 8px 12px; margin: 0; }
+.user-detail dt { margin: 0; font-weight: 600; color: var(--cu-muted); }
+.user-detail dd { margin: 0; }
+.user-actions { display: flex; gap: 12px; margin-top: 20px; }
+.user-actions .danger { background: #ef4444; border-color: #ef4444; }
+.user-actions .danger:hover { background: #dc2626; border-color: #dc2626; }
+.user-form .form-group { margin-bottom: 16px; }
+.user-form label { display: block; margin-bottom: 6px; font-weight: 600; }
+@media (max-width: 640px) { .user-detail { grid-template-columns: 1fr; } .user-actions { flex-direction: column; } }

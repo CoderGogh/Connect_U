@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const created = post.createdAt ? new Date(post.createdAt).toLocaleString() : '';
         const updated = post.updatedAt ? new Date(post.updatedAt).toLocaleString() : '';
         const images = Array.isArray(post.images) ? post.images : [];
-        const liked = Boolean(post.isLiked);
+        const liked = post.isLiked === true;
         const likeCount = typeof post.likeCount === 'number' ? post.likeCount : 0;
         const heart = liked ? '❤️' : '🤍';
 
