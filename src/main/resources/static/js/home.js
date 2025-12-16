@@ -6,6 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const postList = document.getElementById('post-list');
     const loader = document.getElementById('feed-loader');
     const sentinel = document.getElementById('feed-sentinel');
+    const nicknameEl = document.getElementById('profile-nickname');
+    const messageEl = document.getElementById('profile-message');
+    const loggedInActions = document.getElementById('profile-actions-logged-in');
+    const guestActions = document.getElementById('profile-actions-guest');
+    const logoutForm = document.getElementById('logout-form');
 
     const state = {
         sort: 'latest',
@@ -126,7 +131,15 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const method = liked ? 'DELETE' : 'POST';
             const endpoint = `/api/posts/likes/${postId}`;
-            const res = await window.cu.apiFetch(endpoint, { method });
+            const res = await window.cu.apiFetch(endpoint, { method, redirectOn403: false });
+            if (res.status === 403 || res.status === 401) {
+                alert('로그인 후 사용할 수 있습니다.');
+                const loginPath = document.body.dataset.loginPath || '/login';
+                setTimeout(() => {
+                    window.location.href = loginPath;
+                }, 0);
+                return;
+            }
             if (!res.ok) throw new Error('요청에 실패했습니다.');
             const nextCount = liked ? currentCount - 1 : currentCount + 1;
             const nextLiked = !liked;
@@ -155,6 +168,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (postList) postList.innerHTML = '';
         updateEmptyState(true, '게시글을 불러오는 중입니다.');
         loadNext();
+    }
+
+    async function loadProfile() {
+        try {
+            const res = await window.cu.apiFetch('/api/users/my-info');
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            if (nicknameEl) nicknameEl.textContent = data.nickname || '사용자';
+            if (messageEl) messageEl.textContent = data.email || '';
+            if (loggedInActions) loggedInActions.classList.remove('is-hidden');
+            if (guestActions) guestActions.classList.add('is-hidden');
+        } catch (e) {
+            if (nicknameEl) nicknameEl.textContent = 'Guest';
+            if (messageEl) messageEl.textContent = '프로필 정보는 로그인 후 표시됩니다.';
+            if (loggedInActions) loggedInActions.classList.add('is-hidden');
+            if (guestActions) guestActions.classList.remove('is-hidden');
+        }
     }
 
     if (searchForm && keywordInput) {
@@ -209,5 +239,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (logoutForm) {
+        logoutForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const res = await window.cu.apiFetch('/logout', { method: 'POST' });
+                if (res.ok) {
+                    window.location.href = '/';
+                } else {
+                    window.location.href = '/';
+                }
+            } catch (err) {
+                window.location.href = '/';
+            }
+        });
+    }
+
+    loadProfile();
     resetFeed();
 });

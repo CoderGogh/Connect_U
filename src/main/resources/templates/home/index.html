@@ -15,19 +15,19 @@
                 <div class="profile-header">
                     <div class="avatar" aria-hidden="true"></div>
                     <div>
-                        <div class="nickname" th:text="${currentUser?.nickname} ?: 'Guest'">Guest</div>
-                        <div class="muted">프로필 정보는 로그인 후 표시됩니다.</div>
+                        <div class="nickname" id="profile-nickname">Guest</div>
+                        <div class="muted" id="profile-message">프로필 정보는 로그인 후 표시됩니다.</div>
                     </div>
                 </div>
 
-                <div class="profile-actions" th:if="${currentUser != null}">
+                <div class="profile-actions is-hidden" id="profile-actions-logged-in">
                     <a class="cu-btn secondary" th:href="@{/mypage}">마이페이지</a>
-                    <form th:action="@{/logout}" method="post">
+                    <form th:action="@{/logout}" method="post" id="logout-form">
                         <button type="submit" class="cu-btn">로그아웃</button>
                     </form>
                 </div>
 
-                <div class="profile-actions" th:unless="${currentUser != null}">
+                <div class="profile-actions" id="profile-actions-guest">
                     <a class="cu-btn" th:href="@{/login}">로그인</a>
                     <a class="cu-btn secondary" th:href="@{/join}">회원가입</a>
                 </div>

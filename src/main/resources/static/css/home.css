@@ -20,6 +20,7 @@
 .nickname { font-weight: 700; font-size: 16px; }
 .muted { color: var(--cu-muted); font-size: 13px; }
 .profile-actions { display: flex; flex-direction: column; gap: 10px; }
+.is-hidden { display: none !important; }
 .feed-loader { text-align: center; color: var(--cu-muted); padding: 12px; font-size: 14px; display: none; }
 .feed-loader.active { display: block; }
 @media (max-width: 1024px) { .search-bar { flex-direction: column; } .search-bar button { width: 100%; } .sort-options { flex-wrap: wrap; } }
