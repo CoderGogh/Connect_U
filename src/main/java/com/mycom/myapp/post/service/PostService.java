@@ -72,4 +72,5 @@ public interface PostService {
      * @return
      */
     PagingResultDto<PostResponse> getFollwingPostLikesDesc(Integer usersId, Integer startOffset, Integer pageSize);
+    PagingResultDto<PostResponse> getPostListByKeyword(String keyword, Integer startOffset, Integer pageSize);
 }

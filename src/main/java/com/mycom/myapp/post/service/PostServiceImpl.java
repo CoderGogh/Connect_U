@@ -227,4 +227,15 @@ public class PostServiceImpl implements PostService {
         List<PostResponse> followingPostslist = followingPosts.stream().map(this::toDto).toList();
         return new PagingResultDto<>(followingPostslist, followingPosts.getTotalElements());
     }
+
+    @Override
+    public PagingResultDto<PostResponse> getPostListByKeyword(String keyword, Integer startOffset, Integer pageSize) {
+        pageSize = verifyPostsPageSize(pageSize);
+        startOffset = verifyPostsStartOffset(startOffset);
+        Pageable pageable = PageRequest.of(startOffset, pageSize);
+
+        Page<Post> postPage = postRepository.searchByTitleOrContent(pageable, keyword);
+        List<PostResponse> list = postPage.stream().map(this::toDto).toList();
+        return new PagingResultDto<>(list, postPage.getTotalElements());
+    }
 }
