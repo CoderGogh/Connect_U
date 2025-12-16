@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: Z_GCP
+
+  datasource:
+    url: jdbc:mysql://google/DB_NAME?socketFactory=com.google.cloud.sql.mysql.SocketFactory&cloudSqlInstance=PROJECT:REGION:INSTANCE
+    username: DB_USERNAME
+    password: DB_PASSWORD
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+gcp:
+  storage:
+    bucket: YOUR_BUCKET_NAME

@@ -45,3 +45,9 @@ src/main/java/com/mycom/myapp/env/
 # DB settings
 src/main/resources/application.properties
 
+# Spring Boot yml (real secrets)
+src/main/resources/application.yml
+src/main/resources/application-*.yml
+
+# except template
+!src/main/resources/application-template.yml

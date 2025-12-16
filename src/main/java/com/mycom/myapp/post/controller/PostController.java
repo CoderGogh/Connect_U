@@ -4,7 +4,6 @@ import com.mycom.myapp.annotation.CurrentUsersId;
 import com.mycom.myapp.common.PagingResultDto;
 import com.mycom.myapp.post.dto.CreatePostRequest;
 import com.mycom.myapp.post.dto.PostResponse;
-import com.mycom.myapp.common.PagingResultDto;
 import com.mycom.myapp.post.service.PostService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
