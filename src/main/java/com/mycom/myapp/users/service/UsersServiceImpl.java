@@ -98,7 +98,7 @@ public class UsersServiceImpl implements UsersService {
     public String uploadUsersImage(Integer usersId, MultipartFile file) throws Exception {
         if(storageClient == null) throw new IllegalStateException("Storage client not initialized");
         Users users = usersRepository.findByIdIsDeletedFalse(usersId).orElseThrow(() ->
-                new RuntimeException("users not found"));
+                new RuntimeException("회원 정보가 존재하지 않습니다."));
         String imageKey = "users/"+usersId+"/"+ UUID.randomUUID();
         UploadResult uploadResult = storageClient.upload(file.getBytes(), imageKey);
         users.updateImageKey(imageKey);
@@ -109,14 +109,14 @@ public class UsersServiceImpl implements UsersService {
     @Override
     public UsersResponseDto getUsersById(Integer usersId) {
         Users users = usersRepository.findByIdJoinRole(usersId).orElseThrow(() ->
-                new RuntimeException("User Not Found"));
+                new RuntimeException("회원 정보가 존재하지 않습니다."));
         return toUsersResponseDto(users);
     }
 
     @Override
     public void quit(HttpServletRequest request, Integer usersId) throws ServletException {
         Users users = usersRepository.findById(usersId).orElseThrow(() ->
-                new RuntimeException("User Not Found"));
+                new RuntimeException("회원 정보가 존재하지 않습니다."));
         users.setDelete();
         usersRepository.save(users);
         request.logout();
@@ -126,7 +126,7 @@ public class UsersServiceImpl implements UsersService {
     @Transactional
     public void update(HttpServletRequest request, Integer usersId, UsersRequestDto dto) throws ServletException {
         Users users = usersRepository.findByIdIsDeletedFalse(usersId).orElseThrow(() ->
-                new RuntimeException("User Not Found"));
+                new RuntimeException("회원 정보가 존재하지 않습니다."));
         if(dto.getNickname() != null) {
             users.updateNickname(dto.getNickname());
         }
