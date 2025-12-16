@@ -22,7 +22,8 @@ public class UsersController {
 
     @GetMapping("/id/{usersId}")
     @Operation(summary = "식별자로 회원 세부 정보 조회")
-    public ResponseEntity<UsersResponseDto> getUsersById(@CurrentUsersId(required = false) Integer myUsersId, @PathVariable Integer usersId) {
+    public ResponseEntity<UsersResponseDto> getUsersById(@CurrentUsersId(required = false) Integer myUsersId, @PathVariable("usersId") Integer usersId
+) {
         return ResponseEntity.ok(usersService.getUsersById(myUsersId, usersId));
     }
 
