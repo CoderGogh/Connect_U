@@ -17,7 +17,7 @@
 <body th:class="${bodyClass}">
     <header class="cu-topbar">
         <a class="cu-brand" th:href="@{/}">Connect U</a>
-        <div class="cu-top-actions" th:if="${topActions != null}" th:replace="${topActions}"></div>
+        <div class="cu-top-actions" th:replace="${topActions} ?: ~{}"></div>
     </header>
 
     <main class="cu-container">
