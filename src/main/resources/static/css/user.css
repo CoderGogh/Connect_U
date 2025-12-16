@@ -8,6 +8,7 @@
 .user-detail dt { margin: 0; font-weight: 600; color: var(--cu-muted); }
 .user-detail dd { margin: 0; }
 .user-actions { display: flex; gap: 12px; margin-top: 20px; }
+.user-actions .cu-btn { min-width: 120px; }
 .user-actions .danger { background: #ef4444; border-color: #ef4444; }
 .user-actions .danger:hover { background: #dc2626; border-color: #dc2626; }
 .user-form .form-group { margin-bottom: 16px; }

@@ -14,6 +14,7 @@ public class UsersResponseDto {
     private String email;
     private String nickname;
     private String description;
+    private Boolean isFollowing; // 특정 유저 팔로우 여부(true: 팔로우 중, false: 팔로우 x, null: 자기 자신)
     private String imageKey;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

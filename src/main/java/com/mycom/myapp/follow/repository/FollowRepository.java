@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FollowRepository extends JpaRepository<Follow, FollowKey> {
 
@@ -26,4 +27,7 @@ public interface FollowRepository extends JpaRepository<Follow, FollowKey> {
      */
     @Query("select f.userDest.usersId from Follow f where f.userSrc.usersId = :usersId")
     List<Integer> findAllByUserSrc(@Param("usersId") Integer usersId);
+
+    @Query("select count(1) from Follow f where f.userSrc.usersId = :usersId and f.userDest.usersId = :targetId")
+    Optional<Integer> existsByUsersIdAndTargetId(@Param("usersId") Integer usersId, @Param("targetId") Integer targetId);
 }

@@ -1,6 +1,7 @@
 package com.mycom.myapp.users.service;
 
 import com.mycom.myapp.common.PagingResultDto;
+import com.mycom.myapp.follow.repository.FollowRepository;
 import com.mycom.myapp.storage.StorageClient;
 import com.mycom.myapp.storage.UploadResult;
 import com.mycom.myapp.users.dto.UsersListResponseDto;
@@ -30,6 +31,7 @@ public class UsersServiceImpl implements UsersService {
     private final UsersRepository usersRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final StorageClient storageClient;
+    private final FollowRepository followRepository;
 
     /**
      * Users -> UsersResponseDto
@@ -107,10 +109,20 @@ public class UsersServiceImpl implements UsersService {
     }
 
     @Override
-    public UsersResponseDto getUsersById(Integer usersId) {
-        Users users = usersRepository.findByIdJoinRole(usersId).orElseThrow(() ->
+    public UsersResponseDto getUsersById(Integer usersId, Integer targetId) {
+        Users users = usersRepository.findByIdJoinRole(targetId).orElseThrow(() ->
                 new RuntimeException("회원 정보가 존재하지 않습니다."));
-        return toUsersResponseDto(users);
+        UsersResponseDto dto = toUsersResponseDto(users);
+        if(usersId != null && usersId.equals(targetId)) {
+            return dto;
+        }
+        Integer followCount = followRepository.existsByUsersIdAndTargetId(usersId, targetId).orElse(0);
+        if(followCount != 0) {
+            dto.setIsFollowing(true);
+        } else {
+            dto.setIsFollowing(false);
+        }
+        return dto;
     }
 
     @Override
