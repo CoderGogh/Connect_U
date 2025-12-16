@@ -3,15 +3,11 @@ package com.mycom.myapp.search.controller;
 import com.mycom.myapp.common.PagingResultDto;
 import com.mycom.myapp.post.dto.PostResponse;
 import com.mycom.myapp.post.service.PostService;
-import com.mycom.myapp.search.dto.SearchResultDto;
-import com.mycom.myapp.search.service.SearchService;
 import com.mycom.myapp.users.dto.UsersListResponseDto;
 import com.mycom.myapp.users.service.UsersService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
