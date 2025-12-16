@@ -140,16 +140,22 @@ public class PostController {
         summary = "게시글 이미지 업로드",
         description = """
             게시글에 이미지를 업로드합니다.
-            multipart/form-data 형식으로 파일을 전달해야 합니다.
+            multipart/form-data 형식으로 'files' key로 파일을 전달해야 합니다.
+            여러 파일을 한 번에 업로드할 수 있으며, 선택한 순서대로 seq가 할당됩니다.
+            
+            Postman 사용법:
+            - Body 탭에서 form-data 선택
+            - Key: 'files' (Type: File)
+            - Value: 파일 선택 창에서 여러 파일을 한 번에 선택 (Ctrl+클릭 또는 Cmd+클릭)
             """
     )
-    public ResponseEntity<PostImageDto> uploadImage(
+    public ResponseEntity<List<PostImageDto>> uploadImages(
             @PathVariable("id") Integer postId,
-            @RequestPart("file") MultipartFile file,
+            @RequestPart("files") List<MultipartFile> files,
             Principal principal
     ) throws Exception {
-        PostImageDto dto = postService.uploadPostImage(postId, file, principal);
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        List<PostImageDto> dtos = postService.uploadPostImages(postId, files, principal);
+        return ResponseEntity.status(HttpStatus.CREATED).body(dtos);
     }
 
     @PutMapping("/{id}")

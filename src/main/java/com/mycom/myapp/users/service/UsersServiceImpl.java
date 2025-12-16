@@ -2,7 +2,6 @@ package com.mycom.myapp.users.service;
 
 import com.mycom.myapp.common.PagingResultDto;
 import com.mycom.myapp.storage.StorageClient;
-import com.mycom.myapp.storage.UploadResult;
 import com.mycom.myapp.users.dto.UsersListResponseDto;
 import com.mycom.myapp.users.dto.UsersRequestDto;
 import com.mycom.myapp.users.dto.UsersResponseDto;
@@ -99,8 +98,22 @@ public class UsersServiceImpl implements UsersService {
         if(storageClient == null) throw new IllegalStateException("Storage client not initialized");
         Users users = usersRepository.findByIdIsDeletedFalse(usersId).orElseThrow(() ->
                 new RuntimeException("회원 정보가 존재하지 않습니다."));
+        
+        // 기존 프로필 이미지가 있으면 GCS에서 삭제
+        String oldImageKey = users.getImageKey();
+        if (oldImageKey != null && !oldImageKey.isEmpty()) {
+            try {
+                storageClient.delete(oldImageKey);
+            } catch (Exception e) {
+                // GCS 삭제 실패 시 로그만 기록하고 계속 진행 (새 이미지 업로드는 진행)
+                System.err.println("Failed to delete old profile image from GCS: " + oldImageKey);
+                e.printStackTrace();
+            }
+        }
+        
+        // 새 이미지 업로드
         String imageKey = "users/"+usersId+"/"+ UUID.randomUUID();
-        UploadResult uploadResult = storageClient.upload(file.getBytes(), imageKey);
+        storageClient.upload(file.getBytes(), imageKey);
         users.updateImageKey(imageKey);
         usersRepository.save(users);
         return imageKey;

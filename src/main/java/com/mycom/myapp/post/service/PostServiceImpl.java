@@ -14,8 +14,8 @@ import com.mycom.myapp.users.repository.UsersRepository;
 import lombok.RequiredArgsConstructor;
 import com.mycom.myapp.storage.StorageClient;
 import com.mycom.myapp.storage.UploadResult;
-import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -97,7 +97,7 @@ public class PostServiceImpl implements PostService {
 
     // ================= 이미지 업로드 =================
     @Override
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public PostImageDto uploadPostImage(
             Integer postId,
             MultipartFile file,
@@ -152,6 +152,84 @@ public class PostServiceImpl implements PostService {
                 imageKey,
                 imageUrl
         );
+    }
+
+    // ================= 여러 이미지 업로드 =================
+    @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public List<PostImageDto> uploadPostImages(
+            Integer postId,
+            List<MultipartFile> files,
+            Principal principal
+    ) throws Exception {
+        if (files == null || files.isEmpty()) {
+            throw new IllegalArgumentException("이미지 파일이 비어 있습니다.");
+        }
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+
+        // 권한 체크
+        if (principal != null) {
+            if (!principal.getName().equals(post.getUsers().getEmail())) {
+                throw new SecurityException("Not authorized");
+            }
+        }
+
+        // 현재 최대 seq 조회 (삭제되지 않은 이미지만 고려)
+        Integer maxSeq = postImageRepository.findMaxSeqByPost(post);
+        int nextSeq = (maxSeq == null ? -1 : maxSeq);
+
+        // 전체 이미지 개수 제한 확인
+        int currentImageCount = (maxSeq == null ? 0 : maxSeq + 1);
+        if (currentImageCount + files.size() > 5) {
+            throw new IllegalStateException(
+                    String.format("이미지는 최대 5장까지 업로드할 수 있습니다. 현재 %d장, 추가하려는 이미지 %d장",
+                            currentImageCount, files.size())
+            );
+        }
+
+        List<PostImageDto> results = new java.util.ArrayList<>();
+
+        // 각 파일을 순서대로 처리 (선택한 순서대로 seq 할당)
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) {
+                continue; // 빈 파일은 건너뛰기
+            }
+
+            nextSeq++;
+            if (nextSeq >= 5) {
+                throw new IllegalStateException("이미지는 최대 5장까지 업로드할 수 있습니다.");
+            }
+
+            // imageKey 생성
+            String extension = extractExtension(file.getOriginalFilename());
+            String imageKey = "posts/" + postId + "/" + UUID.randomUUID() + "." + extension;
+
+            // GCS 업로드
+            UploadResult uploadResult = storageClient.upload(file.getBytes(), imageKey);
+
+            // DB 저장
+            PostImage image = PostImage.builder()
+                    .post(post)
+                    .seq(nextSeq)
+                    .imageKey(imageKey)
+                    .volume(uploadResult.getSize())
+                    .build();
+
+            postImageRepository.save(image);
+
+            // Signed URL 생성
+            String imageUrl = storageClient.getSignedUrl(imageKey);
+
+            results.add(new PostImageDto(
+                    image.getId().getSeq(),
+                    imageKey,
+                    imageUrl
+            ));
+        }
+
+        return results;
     }
 
 
@@ -224,9 +302,9 @@ public class PostServiceImpl implements PostService {
                 .map(img -> new PostImageDto(
                         img.getId().getSeq(),
                         img.getImageKey(),
-                        storageClient.getPublicUrl(img.getImageKey())
+                        // 조회 시마다 GCS Signed URL(24h TTL)을 생성해서 내려준다.
+                        storageClient.getSignedUrl(img.getImageKey())
                 ))
-
                 .toList();
 
         dto.setImages(images);
