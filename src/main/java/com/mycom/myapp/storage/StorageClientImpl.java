@@ -25,10 +25,16 @@ public class StorageClientImpl implements StorageClient {
         // 존재 여부 체크
         return false;
     }
-
     @Override
     public String getPublicUrl(String key) {
         return "http://localhost/mock/" + key;
+    }
+
+    @Override
+    public String getSignedUrl(String key) {
+        // 로컬 프로파일에서는 실제 Signed URL이 필요 없으므로
+        // 기존 mock URL을 그대로 사용하거나, 구분을 위해 suffix를 붙여도 된다.
+        return getPublicUrl(key);
     }
 
 }

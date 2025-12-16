@@ -51,3 +51,6 @@ src/main/resources/application-*.yml
 
 # except template
 !src/main/resources/application-template.yml
+
+.postman/
+postman/

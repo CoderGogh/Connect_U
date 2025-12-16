@@ -34,11 +34,21 @@ public interface PostService {
     void deletePost(Integer id, Principal principal);
 
     /**
-     * 게시글 이미지 업로드
+     * 게시글 이미지 업로드 (단일 파일)
      */
     PostImageDto uploadPostImage(
             Integer postId,
             MultipartFile file,
+            Principal principal
+    ) throws Exception;
+
+    /**
+     * 게시글 이미지 업로드 (여러 파일)
+     * 선택한 순서대로 seq가 할당됩니다.
+     */
+    List<PostImageDto> uploadPostImages(
+            Integer postId,
+            List<MultipartFile> files,
             Principal principal
     ) throws Exception;
 
