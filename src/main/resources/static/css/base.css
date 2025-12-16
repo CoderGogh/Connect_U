@@ -99,6 +99,14 @@ a:hover {
     background: var(--cu-primary);
     color: #fff;
 }
+.cu-btn:link,
+.cu-btn:visited {
+    color: #fff;
+}
+.cu-btn:not(.secondary):hover,
+.cu-btn:not(.secondary):focus {
+    color: #fff;
+}
 
 .cu-btn:hover {
     background: var(--cu-primary-strong);

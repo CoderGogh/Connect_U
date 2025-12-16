@@ -320,7 +320,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    const renderedPostIds = new Set();
+
     function renderPostCard(post) {
+        const pid = post.id;
+        if (pid != null && renderedPostIds.has(pid)) {
+            return; // 이미 렌더링된 게시글은 건너뜀
+        }
         const card = document.createElement('article');
         card.className = 'post-card';
         const created = post.createdAt ? new Date(post.createdAt).toLocaleString() : '';
@@ -369,6 +375,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>` : ''}
         `;
         postList.appendChild(card);
+        if (pid != null) {
+            renderedPostIds.add(pid);
+        }
     }
 
     function updateEmptyState(show, message) {
@@ -388,39 +397,64 @@ document.addEventListener('DOMContentLoaded', () => {
         setLoader(true);
 
         try {
-            let content = [];
-            if (!state.followingDone) {
+            let rendered = false;
+
+            // 팔로우 피드: 결과가 pageSize보다 작으면 같은 피드를 바로 다음 페이지까지 이어서 조회
+            while (!state.followingDone) {
                 const endpoint =
                     state.sort === 'likes'
                         ? '/api/posts/following-likes'
                         : '/api/posts/following-latest';
                 const query = window.cu.buildQuery({ page: state.followingPage, size: state.pageSize });
                 const data = await fetchPosts(`${endpoint}?${query}`);
-                content = Array.isArray(data.content) ? data.content : [];
-                if (content.length === 0) {
-                    state.followingDone = true;
-                } else {
+                const content = Array.isArray(data.content) ? data.content : [];
+
+                if (content.length > 0) {
+                    updateEmptyState(false);
+                    content.forEach(renderPostCard);
+                    rendered = true;
                     state.followingPage += 1;
+                }
+
+                if (content.length < state.pageSize) {
+                    state.followingDone = true;
+                }
+
+                // content가 pageSize 미만이면 동일 피드 다음 페이지를 즉시 조회,
+                // pageSize 이상이면 다음 호출로 넘어간다.
+                if (content.length === 0 || content.length >= state.pageSize) {
+                    break;
                 }
             }
 
-            if (content.length === 0 && !state.generalDone) {
+            // 전체 피드: 팔로우가 끝났거나 비어 있을 때, 동일 규칙으로 즉시 다음 페이지 요청
+            while (!state.generalDone && (state.followingDone || !rendered)) {
                 const endpoint = state.sort === 'likes' ? '/api/posts/likes' : '/api/posts/latest';
                 const query = window.cu.buildQuery({ page: state.generalPage, size: state.pageSize });
                 const data = await fetchPosts(`${endpoint}?${query}`);
-                content = Array.isArray(data.content) ? data.content : [];
-                if (content.length === 0) {
-                    state.generalDone = true;
-                } else {
+                const content = Array.isArray(data.content) ? data.content : [];
+
+                if (content.length > 0) {
+                    updateEmptyState(false);
+                    content.forEach(renderPostCard);
+                    rendered = true;
                     state.generalPage += 1;
+                }
+
+                if (content.length < state.pageSize) {
+                    state.generalDone = true;
+                }
+
+                if (content.length === 0 || content.length >= state.pageSize) {
+                    break;
                 }
             }
 
-            if (content.length > 0) {
-                updateEmptyState(false);
-                content.forEach(renderPostCard);
-            } else if (state.followingDone && state.generalDone) {
-                updateEmptyState(true, '더 이상 게시글이 없습니다.');
+            if (!rendered && state.followingDone && state.generalDone) {
+                if (postEmpty) {
+                    postEmpty.textContent = '더 이상 게시글이 없습니다.';
+                    postEmpty.style.display = 'block';
+                }
             }
         } catch (err) {
             console.error(err);
@@ -468,7 +502,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await window.cu.apiFetch(`/api/posts/${postId}`, { method: 'DELETE' });
             if (!res.ok) throw new Error('삭제에 실패했습니다.');
             alert('게시글이 삭제되었습니다.');
-            button.closest('.post-card')?.remove();
+            const card = button.closest('.post-card');
+            const id = button.dataset.id;
+            if (id) renderedPostIds.delete(Number(id));
+            card?.remove();
         } catch (err) {
             alert(err.message || '게시글 삭제 중 오류가 발생했습니다.');
         }
@@ -492,6 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.generalPage = 0;
         state.followingDone = false;
         state.generalDone = false;
+        renderedPostIds.clear();
         if (postList) postList.innerHTML = '';
         updateEmptyState(true, '게시글을 불러오는 중입니다.');
         loadNext();

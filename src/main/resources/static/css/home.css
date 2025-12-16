@@ -21,6 +21,7 @@
 .nickname { font-weight: 700; font-size: 16px; }
 .muted { color: var(--cu-muted); font-size: 13px; }
 .profile-actions { display: flex; flex-direction: column; gap: 10px; }
+.profile-actions .cu-btn { width: 100%; justify-content: center; }
 .is-hidden { display: none !important; }
 .feed-loader { text-align: center; color: var(--cu-muted); padding: 12px; font-size: 14px; display: none; }
 .feed-loader.active { display: block; }
