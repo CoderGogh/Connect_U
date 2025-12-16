@@ -26,8 +26,25 @@
         <div class="user-actions">
             <a class="cu-btn secondary" th:href="@{/mypage/edit}">프로필 수정</a>
             <button class="cu-btn danger" id="btn-delete-account" type="button">회원 탈퇴</button>
+            <button class="cu-btn secondary" id="btn-my-followers" type="button">팔로워 목록</button>
+            <button class="cu-btn secondary" id="btn-my-followings" type="button">팔로잉 목록</button>
         </div>
     </section>
+
+    <div class="cu-modal" id="follow-modal" aria-hidden="true">
+        <div class="cu-modal-overlay"></div>
+        <div class="cu-modal-content" role="dialog" aria-modal="true">
+            <div class="cu-modal-header">
+                <h2 class="cu-modal-title" id="follow-modal-title">목록</h2>
+                <button class="cu-modal-close" id="follow-modal-close" type="button">✕</button>
+            </div>
+            <div class="cu-modal-body">
+                <div class="follow-list" id="follow-list"></div>
+                <div class="follow-empty" id="follow-empty" style="display:none;">목록이 없습니다.</div>
+                <div class="follow-loading" id="follow-loading" style="display:none;">불러오는 중...</div>
+            </div>
+        </div>
+    </div>
 </main>
 
 <th:block th:fragment="extraScripts">
