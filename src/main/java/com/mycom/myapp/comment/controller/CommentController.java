@@ -1,9 +1,11 @@
 package com.mycom.myapp.comment.controller;
 
 import com.mycom.myapp.annotation.CurrentUsersId;
+import com.mycom.myapp.common.PagingResultDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,7 +40,7 @@ public class CommentController {
 
 	// 댓글 + 대댓글 트리 조회 (페이징 + 정렬)
 	@GetMapping("/{postId}")
-	public Page<CommentTreeResponseDto> getCommentsByPost(
+	public ResponseEntity<PagingResultDto<CommentTreeResponseDto>> getCommentsByPost(
 	    @PathVariable("postId") Integer postId,
 
 	    @RequestParam(name = "page", defaultValue = "0") int page,
@@ -49,7 +51,7 @@ public class CommentController {
 	) {
 
 	    Pageable pageable = PageRequest.of(page, size);
-	    return commentService.getCommentsByPost(postId, usersId, pageable, sort);
+	    return ResponseEntity.ok(commentService.getCommentsByPost(postId, usersId, pageable, sort));
 	}
 
 

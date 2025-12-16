@@ -2,6 +2,7 @@ package com.mycom.myapp.comment.service;
 
 import java.util.List;
 
+import com.mycom.myapp.common.PagingResultDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -14,7 +15,7 @@ public interface CommentService {
 
     CommentResponseDto createComment(CommentCreateRequestDto dto, Integer userId);
 
-    Page<CommentTreeResponseDto> getCommentsByPost(Integer postId, Integer userId, Pageable pageable ,String sort);
+    PagingResultDto<CommentTreeResponseDto> getCommentsByPost(Integer postId, Integer userId, Pageable pageable , String sort);
 
     CommentResponseDto updateComment(Integer commentId, String content, Integer userId);
     

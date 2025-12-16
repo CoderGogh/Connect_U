@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.mycom.myapp.common.PagingResultDto;
 import com.mycom.myapp.post.entity.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -74,7 +75,7 @@ public class CommentServiceImpl implements CommentService {
         //  댓글 페이징 + 트리 반환
     
     @Override
-    public Page<CommentTreeResponseDto> getCommentsByPost(
+    public PagingResultDto<CommentTreeResponseDto> getCommentsByPost(
             Integer postId,
             Integer userId,
             Pageable pageable,
@@ -115,8 +116,8 @@ public class CommentServiceImpl implements CommentService {
                 .collect(Collectors.toSet());
 
         List<CommentTreeResponseDto> tree = buildTree(allComments, likedSet);
-
-        return new PageImpl<>(tree, sortedPageable, parentPage.getTotalElements());
+        Long totalCount = commentRepository.countAll().orElse(0L);
+        return new PagingResultDto<>(tree, totalCount);
     }
 
 
