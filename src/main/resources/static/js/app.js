@@ -20,8 +20,9 @@
     }
 
     async function apiFetch(input, init = {}) {
+        const { redirectOn403 = true, ...rest } = init;
         const csrf = getCsrf();
-        const options = { ...init };
+        const options = { ...rest };
         options.method = options.method || 'GET';
         options.headers = new Headers(init.headers || {});
 
@@ -38,8 +39,11 @@
 
         if (response.status === 403) {
             const loginPath = document.body.dataset.loginPath || '/login';
-            window.location.href = loginPath;
-            throw new Error('Forbidden - redirected to login');
+            if (redirectOn403) {
+                window.location.href = loginPath;
+                throw new Error('Forbidden - redirected to login');
+            }
+            // redirectOn403=false인 경우 호출부에서 처리
         }
         if (response.status === 413) {
             showWarning('이미지 크기가 5MB를 초과했습니다.');
