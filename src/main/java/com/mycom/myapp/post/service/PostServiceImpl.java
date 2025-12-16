@@ -243,6 +243,7 @@ public class PostServiceImpl implements PostService {
         Pageable pageable = PageRequest.of(startOffset, pageSize);
 
         List<Integer> followingUsersIdList = followRepository.findAllByUserSrc(usersId);
+        followingUsersIdList.add(usersId); // 자신이 작성한 게시글도 조회
 
         Page<Post> followingPosts = postRepository.findActiveFollwingPostsOrderByCreatedAtDesc(pageable, followingUsersIdList);
         Set<Integer> likedPostIdSet = postLikeRepository.findLikedPostIdList(followingPosts.getContent().stream().map(Post::getId).toList(), usersId);
@@ -296,6 +297,8 @@ public class PostServiceImpl implements PostService {
         startOffset = verifyPostsStartOffset(startOffset);
         Pageable pageable = PageRequest.of(startOffset, pageSize);
         List<Integer> followingUsersIdList = followRepository.findAllByUserSrc(usersId);
+        followingUsersIdList.add(usersId); // 자신이 작성한 게시글도 조회
+
         Page<Post> followingPosts = postRepository.findActiveFollowingPostsOrderByLikeCountDesc(pageable, followingUsersIdList);
         Set<Integer> likedPostIdSet = postLikeRepository.findLikedPostIdList(followingPosts.getContent().stream().map(Post::getId).toList(), usersId);
         List<PostResponse> followingPostslist = followingPosts.stream().map(this::toDto).toList();
