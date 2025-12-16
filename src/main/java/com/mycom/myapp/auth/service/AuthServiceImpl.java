@@ -71,7 +71,7 @@ public class AuthServiceImpl implements AuthService {
         usersRepository.save(users);
 
         Role role = roleRepository.findByName("ROLE_USER").orElseThrow(() ->
-                new RuntimeException("Role Not Found"));
+                new RuntimeException("권한 정보가 존재하지 않습니다."));
         usersRoleRepository.save(UsersRole.usersRoleof(users, role));
         JoinResponseDto responseDto = new JoinResponseDto();
         responseDto.setUsersId(users.getUsersId());
@@ -86,7 +86,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void checkEmailDup(String email) {
         if(usersRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email Already Exists");
+            throw new RuntimeException("이미 사용중인 이메일입니다.");
         }
     }
 

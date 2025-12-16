@@ -53,4 +53,9 @@ public class PostImage {
         this.volume = volume;
         this.isDeleted = false;
     }
+    public void softDelete() {
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
+    }
+
 }

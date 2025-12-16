@@ -163,19 +163,47 @@ public class PostServiceImpl implements PostService {
         return toDto(post);
     }
 
-    // ================= 게시글 삭제 =================
+    // ================= 게시글 삭제(이미지 포함) =================
     @Override
     @Transactional
     public void deletePost(Integer id, Principal principal) {
+
+        // 로그 확인용
+        System.out.println("principal: " + principal);
+        System.out.println("principal name: " + (principal != null ? principal.getName() : "null"));
+
+
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));
 
         if (!post.getUsers().getEmail().equals(principal.getName()))
             throw new SecurityException("Not authorized");
 
+        // 1. 게시글에 연결된 이미지 조회
+        List<PostImage> images = postImageRepository.findByPostAndIsDeletedFalseAndImageKeyIsNotNullOrderByIdSeq(post);
+
+        // 2. GCS에서 이미지 삭제
+        for (PostImage img : images) {
+            try {
+                storageClient.delete(img.getImageKey());
+            } catch (Exception e) {
+                // 실패 시 로그 기록
+                System.err.println("Failed to delete image from GCS: " + img.getImageKey());
+                e.printStackTrace();
+            }
+        }
+
+        // 3. 이미지 엔티티 soft delete
+        for (PostImage img : images) {
+            img.softDelete();
+            postImageRepository.save(img);
+        }
+
+        // 4. 게시글 soft delete
         post.softDelete();
         postRepository.save(post);
     }
+
 
     private PostResponse toDto(Post post) {
         PostResponse dto = new PostResponse();
@@ -259,6 +287,61 @@ public class PostServiceImpl implements PostService {
         return originalFilename.substring(originalFilename.lastIndexOf('.') + 1)
                 .toLowerCase();
     }
+    @Override
+    @Transactional
+    public PostResponse updatePost(
+            Integer postId,
+            CreatePostRequest request,
+            List<Integer> deleteImageSeqs,
+            List<MultipartFile> newImages,
+            Principal principal
+    ) throws Exception {
+        // 1. 게시글 조회
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+
+        // 2. 권한 확인
+        if (principal == null || !post.getUsers().getEmail().equals(principal.getName())) {
+            throw new SecurityException("Not authorized");
+        }
+
+        // 3. 게시글 정보 수정
+        post.setTitle(request.getTitle());
+        post.setContent(request.getContent());
+        postRepository.save(post);
+
+        // 4. 삭제할 이미지 처리
+        if (deleteImageSeqs != null && !deleteImageSeqs.isEmpty()) {
+            for (Integer seq : deleteImageSeqs) {
+                PostImage image = postImageRepository.findByPostAndIdSeq(post, seq)
+                        .orElseThrow(() -> new IllegalArgumentException("Image not found"));
+
+                // GCS 삭제
+                try {
+                    storageClient.delete(image.getImageKey());
+                } catch (Exception e) {
+                    System.err.println("Failed to delete image from GCS: " + image.getImageKey());
+                    e.printStackTrace();
+                }
+
+                // DB soft delete
+                image.softDelete();
+                postImageRepository.save(image);
+            }
+        }
+
+        // 5. 새 이미지 업로드
+        if (newImages != null && !newImages.isEmpty()) {
+            for (MultipartFile file : newImages) {
+                uploadPostImage(postId, file, principal);
+            }
+        }
+
+        // 6. DTO 반환
+        return toDto(post);
+    }
+
+
 
     @Override
     public PagingResultDto<PostResponse> getPostListByKeyword(String keyword, Integer startOffset, Integer pageSize) {

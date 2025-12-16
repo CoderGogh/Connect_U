@@ -3,6 +3,7 @@ package com.mycom.myapp.post.controller;
 import com.mycom.myapp.annotation.CurrentUsersId;
 import com.mycom.myapp.common.PagingResultDto;
 import com.mycom.myapp.post.dto.CreatePostRequest;
+import com.mycom.myapp.post.dto.PostImageDto;
 import com.mycom.myapp.post.dto.PostResponse;
 import com.mycom.myapp.post.service.PostService;
 import com.mycom.myapp.post.dto.PostImageDto;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +21,9 @@ import java.security.Principal;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.bind.annotation.RequestPart;
+
+import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -151,5 +155,17 @@ public class PostController {
     ) throws Exception {
         PostImageDto dto = postService.uploadPostImage(postId, file, principal);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+    }
+
+    @PutMapping(path = "/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<PostResponse> updatePost(
+            @PathVariable("id") Integer postId,
+            @RequestPart("data") CreatePostRequest request,
+            @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages,
+            @RequestParam(value = "deleteImageSeqs", required = false) List<Integer> deleteImageSeqs,
+            Principal principal
+    ) throws Exception {
+        PostResponse updated = postService.updatePost(postId, request, deleteImageSeqs, newImages, principal);
+        return ResponseEntity.ok(updated);
     }
 }
