@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" th:fragment="base (pageTitle, bodyClass, mainContent, extraHead, extraScripts, topActions)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+    <title th:text="${pageTitle} ?: 'Connect U'">Connect U</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/base.css}">
+    <th:block th:replace="${extraHead}"></th:block>
+</head>
+<body th:class="${bodyClass}">
+    <header class="cu-topbar">
+        <a class="cu-brand" th:href="@{/}">Connect U</a>
+        <div class="cu-top-actions" th:if="${topActions != null}" th:replace="${topActions}"></div>
+    </header>
+
+    <main class="cu-container">
+        <th:block th:replace="${mainContent}"></th:block>
+    </main>
+
+    <script th:src="@{/js/app.js}"></script>
+    <th:block th:replace="${extraScripts}"></th:block>
+</body>
+</html>

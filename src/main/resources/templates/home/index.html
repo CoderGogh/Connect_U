@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: base(~{::title}, '', ~{::main}, ~{::extraHead}, ~{::extraScripts}, ~{::topActions})}">
+<head>
+    <title>Connect U</title>
+    <th:block th:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/home.css}">
+    </th:block>
+</head>
+<body>
+<th:block th:fragment="topActions">
+    <a class="cu-btn secondary" th:href="@{/login}">로그인</a>
+    <a class="cu-btn" th:href="@{/join}">회원가입</a>
+</th:block>
+
+<main th:fragment="main">
+    <section class="cu-shell">
+        <aside class="cu-profile-col">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="avatar" aria-hidden="true"></div>
+                    <div>
+                        <div class="nickname" th:text="${currentUser?.nickname} ?: 'Guest'">Guest</div>
+                        <div class="muted">프로필 정보는 로그인 후 표시됩니다.</div>
+                    </div>
+                </div>
+
+                <div class="profile-actions" th:if="${currentUser != null}">
+                    <a class="cu-btn secondary" th:href="@{/mypage}">마이페이지</a>
+                    <form th:action="@{/logout}" method="post">
+                        <button type="submit" class="cu-btn">로그아웃</button>
+                    </form>
+                </div>
+
+                <div class="profile-actions" th:unless="${currentUser != null}">
+                    <a class="cu-btn" th:href="@{/login}">로그인</a>
+                    <a class="cu-btn secondary" th:href="@{/join}">회원가입</a>
+                </div>
+            </div>
+        </aside>
+
+        <section class="cu-main-col">
+            <div class="home-search">
+                <form id="search-form" th:action="@{/search}" method="get" class="search-bar">
+                    <input type="text" id="keyword" name="keyword" placeholder="검색어를 입력하세요 (2자 이상)"
+                           aria-label="검색어" required>
+                    <input type="hidden" name="page" value="0">
+                    <input type="hidden" name="size" value="10">
+                    <button type="submit" class="cu-btn">검색</button>
+                </form>
+
+                <div class="sort-options" role="group" aria-label="정렬">
+                    <button type="button" class="sort-btn active" data-sort="latest">최신순</button>
+                    <button type="button" class="sort-btn" data-sort="likes">좋아요순</button>
+                </div>
+            </div>
+
+            <div class="post-feed">
+                <div class="empty" id="post-empty">게시글을 불러오는 중입니다.</div>
+                <div id="post-list" class="post-list" aria-live="polite"></div>
+            </div>
+        </section>
+    </section>
+</main>
+
+<th:block th:fragment="extraScripts">
+    <script th:src="@{/js/home.js}"></script>
+</th:block>
+</body>
+</html>

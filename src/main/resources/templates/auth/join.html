@@ -1,26 +1,27 @@
 <!DOCTYPE html>
-<html lang="ko">
-
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: base(~{::title}, 'auth-body', ~{::main}, ~{::extraHead}, ~{::extraScripts}, ~{::topActions})}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connect U - 회원가입</title>
-    <link rel="stylesheet" href="/css/join.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>회원가입 | Connect U</title>
+    <th:block th:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/join.css}">
+    </th:block>
 </head>
-
 <body>
+<th:block th:fragment="topActions">
+    <a class="cu-btn secondary" th:href="@{/login}">로그인</a>
+</th:block>
+
+<main th:fragment="main">
     <div class="join-container">
         <div class="join-header">
             <h2>Connect U</h2>
             <p>새 계정을 만들고 커넥트에 합류하세요.</p>
         </div>
 
-        <div id="error-box" class="alert-box"></div>
+        <div id="error-box" class="alert-box" role="alert"></div>
 
-        <form id="join-form">
+        <form id="join-form" novalidate>
             <div class="form-group">
                 <label for="email">이메일</label>
                 <input type="email" id="email" class="form-control" placeholder="name@example.com" required>
@@ -38,8 +39,7 @@
 
             <div class="form-group">
                 <label for="description">소개글 (선택)</label>
-                <textarea id="description" class="form-control textarea"
-                          placeholder="간단한 자기소개를 적어보세요."></textarea>
+                <textarea id="description" class="form-control" placeholder="간단한 자기소개를 적어보세요."></textarea>
             </div>
 
             <button type="submit" class="btn-join">회원가입</button>
@@ -47,11 +47,13 @@
 
         <div class="footer-links">
             이미 계정이 있나요?
-            <a href="/html/login.html">로그인으로 이동</a>
+            <a th:href="@{/login}">로그인으로 이동</a>
         </div>
     </div>
+</main>
 
-    <script src="/js/join.js"></script>
+<th:block th:fragment="extraScripts">
+    <script th:src="@{/js/join.js}"></script>
+</th:block>
 </body>
-
 </html>
