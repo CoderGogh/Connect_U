@@ -94,15 +94,11 @@ public class CommentServiceImpl implements CommentService {
 
         List<Comment> parentComments = parentPage.getContent();
 
-        List<Integer> parentIds = parentComments.stream()
-                .map(Comment::getId)
-                .toList();
+     // ⭐ postId 기준 전체 댓글 조회 (depth 제한 없음)
+        List<Comment> allComments =
+                commentRepository.findByPostEntityAndIsDeletedFalseOrderByCreatedAtAsc(postEntity);
 
-        List<Comment> childComments = commentRepository.findByParentCommentIdIn(parentIds);
 
-        List<Comment> allComments = new ArrayList<>();
-        allComments.addAll(parentComments);
-        allComments.addAll(childComments);
 
         List<Integer> allIds = allComments.stream()
                 .map(Comment::getId)
@@ -114,9 +110,11 @@ public class CommentServiceImpl implements CommentService {
         Set<Integer> likedSet = likes.stream()
                 .map(like -> like.getComment().getId())
                 .collect(Collectors.toSet());
-
+       
+     // 부모 댓글 기준 페이징, 트리는 전체 댓글로 구성
         List<CommentTreeResponseDto> tree = buildTree(allComments, likedSet);
-        Long totalCount = commentRepository.countAll().orElse(0L);
+        Long totalCount =
+        	    commentRepository.countParentCommentsByPost(postEntity);
         return new PagingResultDto<>(tree, totalCount);
     }
 

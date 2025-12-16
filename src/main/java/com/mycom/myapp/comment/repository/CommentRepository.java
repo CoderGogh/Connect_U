@@ -1,7 +1,6 @@
 package com.mycom.myapp.comment.repository;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -42,6 +41,12 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
 		""")
 		Page<Comment> findParentCommentsForTree(@Param("postEntity") Post postEntity, Pageable pageable);
 
-		@Query("select count(c) from Comment c")
-		Optional<Long> countAll();
+	    @Query("""
+	    	    select count(c)
+	    	    from Comment c
+	    	    where c.postEntity = :postEntity
+	    	      and c.parentComment is null
+	    	      and (c.isDeleted = false or c.childCount > 0)
+	    	""")
+	    	Long countParentCommentsByPost(@Param("postEntity") Post postEntity);
 }
