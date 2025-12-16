@@ -1,5 +1,6 @@
 package com.mycom.myapp.comment.like.controller;
 
+import com.mycom.myapp.annotation.CurrentUsersId;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,13 +31,9 @@ public class CommentLikeController {
     @PostMapping("/{commentId}")
     public CommentLikeResponseDto toggleLike(
             @PathVariable("commentId") Integer commentId,
-            Authentication authentication
+            @CurrentUsersId Integer usersId
     ) {
-        CustomUserDetails userDetails =
-                (CustomUserDetails) authentication.getPrincipal();
-
-        Integer userId = userDetails.getId();
-        return commentLikeService.toggleLike(commentId, userId);
+        return commentLikeService.toggleLike(commentId, usersId);
     }
 
 }
