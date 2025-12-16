@@ -9,6 +9,7 @@ import com.mycom.myapp.common.PagingResultDto;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
+import java.util.List;
 
 public interface PostService {
 
@@ -72,5 +73,22 @@ public interface PostService {
      * @return
      */
     PagingResultDto<PostResponse> getFollwingPostLikesDesc(Integer usersId, Integer startOffset, Integer pageSize);
+
+
+    /**
+     * 게시글 수정
+     * @param postId 수정할 게시글 ID
+     * @param request 수정할 제목/본문/삭제할 이미지 seq 목록
+     * @param newImages 새로 업로드할 이미지 파일 리스트
+     * @param principal 인증 정보
+     * @return 수정된 게시글 DTO
+     */
+    PostResponse updatePost(
+            Integer postId,
+            CreatePostRequest request,
+            List<Integer> deleteImageSeqs,
+            List<MultipartFile> newImages,
+            Principal principal
+    ) throws Exception;
     PagingResultDto<PostResponse> getPostListByKeyword(String keyword, Integer startOffset, Integer pageSize);
 }
