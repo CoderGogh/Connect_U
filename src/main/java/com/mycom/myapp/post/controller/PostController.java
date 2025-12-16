@@ -5,21 +5,28 @@ import com.mycom.myapp.common.PagingResultDto;
 import com.mycom.myapp.post.dto.CreatePostRequest;
 import com.mycom.myapp.post.dto.PostResponse;
 import com.mycom.myapp.post.service.PostService;
+import com.mycom.myapp.post.dto.PostImageDto;
+
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.security.Principal;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RequestPart;
 
 @RestController
 @RequestMapping("/api/posts")
+@Tag(
+    name = "Posts",
+    description = "게시글(Post) 생성, 조회, 삭제 및 이미지 업로드 API"
+)
 public class PostController {
 
     private final PostService postService;
@@ -30,65 +37,119 @@ public class PostController {
     }
 
     @PostMapping
+    @Operation(
+        summary = "게시글 작성",
+        description = "로그인한 사용자가 새로운 게시글을 작성합니다."
+    )
     public ResponseEntity<PostResponse> createPost(
             @RequestBody CreatePostRequest request,
             @CurrentUsersId Integer usersId
     ) {
         PostResponse created = postService.createPost(request, usersId);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-
     @GetMapping
+    @Operation(
+        summary = "게시글 목록 조회 (기본)",
+        description = "전체 게시글을 페이징하여 조회합니다. Pageable(page, size, sort)를 지원합니다."
+    )
     public ResponseEntity<PagingResultDto<PostResponse>> listPosts(Pageable pageable) {
         PagingResultDto<PostResponse> page = postService.listPosts(pageable);
         return ResponseEntity.ok(page);
     }
 
     @GetMapping("/{id}")
+    @Operation(
+        summary = "게시글 단건 조회",
+        description = "게시글 ID를 기준으로 게시글 상세 정보를 조회합니다."
+    )
     public ResponseEntity<PostResponse> getPost(@PathVariable Integer id) {
         PostResponse dto = postService.getPost(id);
         return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/{id}")
+    @Operation(
+        summary = "게시글 삭제",
+        description = "게시글 작성자 본인만 게시글을 삭제할 수 있습니다. (Soft Delete)"
+    )
     public ResponseEntity<Void> deletePost(@PathVariable Integer id, Principal principal) {
         postService.deletePost(id, principal);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/latest")
-    @Operation(summary = "게시글 전체 최신순 조회", description = "페이지 번호(page), 페이지 크기(size)를 URL 쿼리 파라미터로 전달해주세요. 이 API 반환값의 content가 빈 리스트면 직전 조회 결과값이 마지막 페이지였음을 의미합니다.")
-    public ResponseEntity<PagingResultDto<PostResponse>> getActivePostsLatest(@RequestParam(value = "page", defaultValue = "0") Integer startOffset, @RequestParam(value = "size", defaultValue = "1") Integer pageSize) {
+    @Operation(
+        summary = "게시글 전체 최신순 조회",
+        description = """
+            게시글을 최신순으로 조회합니다.
+            page, size를 쿼리 파라미터로 전달하세요.
+            반환된 content가 빈 리스트라면 마지막 페이지입니다.
+            """
+    )
+    public ResponseEntity<PagingResultDto<PostResponse>> getActivePostsLatest(
+            @RequestParam(value = "page", defaultValue = "0") Integer startOffset,
+            @RequestParam(value = "size", defaultValue = "1") Integer pageSize
+    ) {
         return ResponseEntity.ok(postService.getPostsLatest(startOffset, pageSize));
     }
 
     @GetMapping("/following-latest")
-    @Operation(summary = "팔로우 대상이 작성한 게시글 최신순 조회", description = "페이지 번호(page), 페이지 크기(size)를 URL 쿼리 파라미터로 전달해주세요. 이 API 반환값의 content가 빈 리스트면 그때부터는 '게시글 전체 최신순 조회 API'를 0 페이지부터 요청해주세요.")
-    public ResponseEntity<PagingResultDto<PostResponse>> getActiveFollowingPostsLatest(@CurrentUsersId(required = false) Integer usersId, @RequestParam(value = "page", defaultValue = "0") Integer startOffset, @RequestParam(value = "size", defaultValue = "1") Integer pageSize) {
+    @Operation(
+        summary = "팔로우한 사용자의 게시글 최신순 조회",
+        description = """
+            로그인 사용자가 팔로우한 대상의 게시글을 최신순으로 조회합니다.
+            조회 결과가 더 이상 없으면 게시글 전체 최신순 조회 API를 사용하세요.
+            """
+    )
+    public ResponseEntity<PagingResultDto<PostResponse>> getActiveFollowingPostsLatest(
+            @CurrentUsersId(required = false) Integer usersId,
+            @RequestParam(value = "page", defaultValue = "0") Integer startOffset,
+            @RequestParam(value = "size", defaultValue = "1") Integer pageSize
+    ) {
         return ResponseEntity.ok(postService.getFollwingPostLatest(usersId, startOffset, pageSize));
     }
 
     @GetMapping("/likes")
-    @Operation(summary = "게시글 전체 좋아요순 조회", description = "페이지 번호(page), 페이지 크기(size)를 URL 쿼리 파라미터로 전달해주세요. 이 API 반환값의 content가 빈 리스트면 직전 조회 결과값이 마지막 페이지였음을 의미합니다.")
-    public ResponseEntity<PagingResultDto<PostResponse>> getActivePostLikeCountDesc(@RequestParam(value = "page", defaultValue = "0") Integer startOffset, @RequestParam(value = "size", defaultValue = "1") Integer pageSize) {
+    @Operation(
+        summary = "게시글 전체 좋아요순 조회",
+        description = "게시글을 좋아요 개수 기준 내림차순으로 조회합니다."
+    )
+    public ResponseEntity<PagingResultDto<PostResponse>> getActivePostLikeCountDesc(
+            @RequestParam(value = "page", defaultValue = "0") Integer startOffset,
+            @RequestParam(value = "size", defaultValue = "1") Integer pageSize
+    ) {
         return ResponseEntity.ok(postService.getPostsLikesDesc(startOffset, pageSize));
     }
 
     @GetMapping("/following-likes")
-    @Operation(summary = "팔로우 대상이 작성한 게시글 좋아요순 조회", description = "페이지 번호(page), 페이지 크기(size)를 URL 쿼리 파라미터로 전달해주세요. 이 API 반환값의 content가 빈 리스트면 그때부터는 '게시글 전체 좋아요순 조회 API'를 0 페이지부터 요청해주세요.")
-    public ResponseEntity<PagingResultDto<PostResponse>> getActiveFollowingPostsLikeCountDesc(@CurrentUsersId(required = false) Integer usersId, @RequestParam(value = "page", defaultValue = "0") Integer startOffset, @RequestParam(value = "size", defaultValue = "1") Integer pageSize) {
+    @Operation(
+        summary = "팔로우한 사용자의 게시글 좋아요순 조회",
+        description = "팔로우 대상이 작성한 게시글을 좋아요 수 기준으로 조회합니다."
+    )
+    public ResponseEntity<PagingResultDto<PostResponse>> getActiveFollowingPostsLikeCountDesc(
+            @CurrentUsersId(required = false) Integer usersId,
+            @RequestParam(value = "page", defaultValue = "0") Integer startOffset,
+            @RequestParam(value = "size", defaultValue = "1") Integer pageSize
+    ) {
         return ResponseEntity.ok(postService.getFollwingPostLikesDesc(usersId, startOffset, pageSize));
     }
 
     @PostMapping(path = "/{id}/images", consumes = "multipart/form-data")
-    public ResponseEntity<com.mycom.myapp.post.dto.PostImageDto> uploadImage(@PathVariable("id") Integer postId,
-                                                                            @RequestPart("file") MultipartFile file,
-                                                                            Principal principal) throws Exception {
-        com.mycom.myapp.post.dto.PostImageDto dto = postService.uploadPostImage(postId, file, principal);
+    @Operation(
+        summary = "게시글 이미지 업로드",
+        description = """
+            게시글에 이미지를 업로드합니다.
+            multipart/form-data 형식으로 파일을 전달해야 합니다.
+            """
+    )
+    public ResponseEntity<PostImageDto> uploadImage(
+            @PathVariable("id") Integer postId,
+            @RequestPart("file") MultipartFile file,
+            Principal principal
+    ) throws Exception {
+        PostImageDto dto = postService.uploadPostImage(postId, file, principal);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 }
