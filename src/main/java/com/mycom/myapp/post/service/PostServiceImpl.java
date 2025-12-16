@@ -163,19 +163,47 @@ public class PostServiceImpl implements PostService {
         return toDto(post);
     }
 
-    // ================= 게시글 삭제 =================
+    // ================= 게시글 삭제(이미지 포함) =================
     @Override
     @Transactional
     public void deletePost(Integer id, Principal principal) {
+
+        // 로그 확인용
+        System.out.println("principal: " + principal);
+        System.out.println("principal name: " + (principal != null ? principal.getName() : "null"));
+
+
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));
 
         if (!post.getUsers().getEmail().equals(principal.getName()))
             throw new SecurityException("Not authorized");
 
+        // 1. 게시글에 연결된 이미지 조회
+        List<PostImage> images = postImageRepository.findByPostAndIsDeletedFalseAndImageKeyIsNotNullOrderByIdSeq(post);
+
+        // 2. GCS에서 이미지 삭제
+        for (PostImage img : images) {
+            try {
+                storageClient.delete(img.getImageKey());
+            } catch (Exception e) {
+                // 실패 시 로그 기록
+                System.err.println("Failed to delete image from GCS: " + img.getImageKey());
+                e.printStackTrace();
+            }
+        }
+
+        // 3. 이미지 엔티티 soft delete
+        for (PostImage img : images) {
+            img.softDelete();
+            postImageRepository.save(img);
+        }
+
+        // 4. 게시글 soft delete
         post.softDelete();
         postRepository.save(post);
     }
+
 
     private PostResponse toDto(Post post) {
         PostResponse dto = new PostResponse();
