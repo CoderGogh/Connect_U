@@ -28,6 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const created = post.createdAt ? new Date(post.createdAt).toLocaleString() : '';
         const updated = post.updatedAt ? new Date(post.updatedAt).toLocaleString() : '';
         const images = Array.isArray(post.images) ? post.images : [];
+        const liked = Boolean(post.isLiked);
+        const likeCount = typeof post.likeCount === 'number' ? post.likeCount : 0;
+        const heart = liked ? '❤️' : '🤍';
 
         const imgSection = images.length
             ? `<div class="post-images">${images
@@ -44,9 +47,12 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="post-content">${(post.content || '').replace(/\\n/g, '<br>')}</div>
             ${imgSection}
             <div class="post-actions">
-                <button class="like-btn" data-id="${post.id || ''}" type="button">❤️ ${post.likeCount ?? 0}</button>
+                <button class="like-btn" data-id="${post.id || ''}" data-liked="${liked}" type="button">${heart} ${likeCount}</button>
                 <button class="comment-btn" data-id="${post.id || ''}" type="button">💬 댓글</button>
                 <span class="post-meta">업데이트: ${updated}</span>
+            </div>
+            <div class="comment-module" data-id="${post.id || ''}" style="display:none;">
+                <div class="comment-header">댓글 영역 (추후 API 연동)</div>
             </div>
         `;
         postList.appendChild(card);
@@ -112,6 +118,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function toggleLike(button) {
+        const postId = button.dataset.id;
+        if (!postId) return;
+        const liked = button.dataset.liked === 'true';
+        const currentCount = parseInt(button.textContent.replace(/[^0-9]/g, ''), 10) || 0;
+        try {
+            const method = liked ? 'DELETE' : 'POST';
+            const endpoint = `/api/posts/likes/${postId}`;
+            const res = await window.cu.apiFetch(endpoint, { method });
+            if (!res.ok) throw new Error('요청에 실패했습니다.');
+            const nextCount = liked ? currentCount - 1 : currentCount + 1;
+            const nextLiked = !liked;
+            button.dataset.liked = nextLiked.toString();
+            const heart = nextLiked ? '❤️' : '🤍';
+            button.textContent = `${heart} ${Math.max(nextCount, 0)}`;
+        } catch (err) {
+            window.cu.showWarning(err.message || '좋아요 처리 중 오류가 발생했습니다.');
+        }
+    }
+
+    function toggleComment(button) {
+        const postId = button.dataset.id;
+        if (!postId) return;
+        const module = postList.querySelector(`.comment-module[data-id=\"${postId}\"]`);
+        if (!module) return;
+        const isHidden = module.style.display === 'none';
+        module.style.display = isHidden ? 'block' : 'none';
+    }
+
     function resetFeed() {
         state.followingPage = 0;
         state.generalPage = 0;
@@ -158,6 +193,18 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('scroll', () => {
             if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 200) {
                 loadNext();
+            }
+        });
+    }
+
+    if (postList) {
+        postList.addEventListener('click', (e) => {
+            const target = e.target.closest('button');
+            if (!target) return;
+            if (target.classList.contains('like-btn')) {
+                toggleLike(target);
+            } else if (target.classList.contains('comment-btn')) {
+                toggleComment(target);
             }
         });
     }
