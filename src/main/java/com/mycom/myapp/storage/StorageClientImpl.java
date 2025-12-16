@@ -25,4 +25,10 @@ public class StorageClientImpl implements StorageClient {
         // 존재 여부 체크
         return false;
     }
+
+    @Override
+    public String getPublicUrl(String key) {
+        return "http://localhost/mock/" + key;
+    }
+
 }
