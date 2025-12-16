@@ -1,16 +1,19 @@
 package com.mycom.myapp.search.controller;
 
+import com.mycom.myapp.common.PagingResultDto;
+import com.mycom.myapp.post.dto.PostResponse;
+import com.mycom.myapp.post.service.PostService;
 import com.mycom.myapp.search.dto.SearchResultDto;
 import com.mycom.myapp.search.service.SearchService;
+import com.mycom.myapp.users.dto.UsersListResponseDto;
+import com.mycom.myapp.users.service.UsersService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(
     name = "Search API",
@@ -20,41 +23,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/search")
 @RequiredArgsConstructor
 public class SearchController {
+    private final UsersService usersService;
+    private final PostService postService;
 
-    private final SearchService searchService;
-
-    @Operation(
-        summary = "통합 검색",
-        description = """
-            키워드를 기준으로 사용자 또는 게시글을 검색합니다.
-
-            - type=user : 사용자 닉네임 기준 검색
-            - type=postModel : 게시글 제목 또는 본문 기준 검색
-            - Pageable을 이용한 페이징 지원
-            """
-    )
-    @GetMapping
-    public SearchResultDto search(
-            @Parameter(
-                description = "검색 타입 (user | postModel)",
-                example = "user",
-                required = true
-            )
-            @RequestParam("type") String type,
-
-            @Parameter(
-                description = "검색 키워드",
-                example = "spring",
-                required = true
-            )
-            @RequestParam("keyword") String keyword,
-
-            @Parameter(
-                description = "페이징 정보 (page, size, sort)",
-                hidden = true
-            )
-            Pageable pageable
-    ) {
-        return searchService.search(type, keyword, pageable);
+    @GetMapping("/users")
+    @Operation(summary = "키워드 기반 회원 닉네임으로 검색")
+    public ResponseEntity<PagingResultDto<UsersListResponseDto>> searchUsersByKeyword(@RequestParam("keyword") String keyword, @RequestParam("page") Integer startOffset, @RequestParam("size") Integer pageSize) {
+        return ResponseEntity.ok(usersService.getUsersListByNickname(keyword, startOffset, pageSize));
+    }
+    @GetMapping("/post")
+    @Operation(summary = "키워드 기반 게시글 제목/본문을 검색")
+    public ResponseEntity<PagingResultDto<PostResponse>> searchPostByKeyword(@RequestParam("keyword") String keyword, @RequestParam("page") Integer startOffset, @RequestParam("size") Integer pageSize) {
+        return ResponseEntity.ok(postService.getPostListByKeyword(keyword, startOffset, pageSize));
     }
 }
