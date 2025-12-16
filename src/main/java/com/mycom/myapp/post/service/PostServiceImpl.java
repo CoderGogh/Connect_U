@@ -287,5 +287,60 @@ public class PostServiceImpl implements PostService {
         return originalFilename.substring(originalFilename.lastIndexOf('.') + 1)
                 .toLowerCase();
     }
+    @Override
+    @Transactional
+    public PostResponse updatePost(
+            Integer postId,
+            CreatePostRequest request,
+            List<Integer> deleteImageSeqs,
+            List<MultipartFile> newImages,
+            Principal principal
+    ) throws Exception {
+        // 1. 게시글 조회
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+
+        // 2. 권한 확인
+        if (principal == null || !post.getUsers().getEmail().equals(principal.getName())) {
+            throw new SecurityException("Not authorized");
+        }
+
+        // 3. 게시글 정보 수정
+        post.setTitle(request.getTitle());
+        post.setContent(request.getContent());
+        postRepository.save(post);
+
+        // 4. 삭제할 이미지 처리
+        if (deleteImageSeqs != null && !deleteImageSeqs.isEmpty()) {
+            for (Integer seq : deleteImageSeqs) {
+                PostImage image = postImageRepository.findByPostAndIdSeq(post, seq)
+                        .orElseThrow(() -> new IllegalArgumentException("Image not found"));
+
+                // GCS 삭제
+                try {
+                    storageClient.delete(image.getImageKey());
+                } catch (Exception e) {
+                    System.err.println("Failed to delete image from GCS: " + image.getImageKey());
+                    e.printStackTrace();
+                }
+
+                // DB soft delete
+                image.softDelete();
+                postImageRepository.save(image);
+            }
+        }
+
+        // 5. 새 이미지 업로드
+        if (newImages != null && !newImages.isEmpty()) {
+            for (MultipartFile file : newImages) {
+                uploadPostImage(postId, file, principal);
+            }
+        }
+
+        // 6. DTO 반환
+        return toDto(post);
+    }
+
+
 
 }
