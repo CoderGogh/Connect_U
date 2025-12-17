@@ -26,7 +26,9 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class UsersServiceImpl implements UsersService {
-    private final int USERS_MAX_PAGE_SIZE = 100;
+
+    private static final int USERS_MAX_PAGE_SIZE = 100;
+
     private final UsersRepository usersRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final StorageClient storageClient;
@@ -34,149 +36,188 @@ public class UsersServiceImpl implements UsersService {
 
     /**
      * Users -> UsersResponseDto
-     * @param users
-     * @return
      */
     private UsersResponseDto toUsersResponseDto(Users users) {
         UsersResponseDto dto = new UsersResponseDto();
         dto.setUsersId(users.getUsersId());
         dto.setEmail(users.getEmail());
+        dto.setNickname(users.getNickname());
         dto.setDescription(users.getDescription());
         dto.setImageKey(users.getImageKey());
-        dto.setNickname(users.getNickname());
         dto.setCreatedAt(users.getCreatedAt());
         dto.setUpdatedAt(users.getUpdatedAt());
-        dto.setRoles(users.getUsersRoles().stream().map(ur -> ur.getRole().getName()).toList());
+        dto.setRoles(
+                users.getUsersRoles()
+                        .stream()
+                        .map(ur -> ur.getRole().getName())
+                        .toList()
+        );
+
+        if (users.getImageKey() != null) {
+            dto.setImageUrl(storageClient.getSignedUrl(users.getImageKey()));
+        }
+
         return dto;
     }
 
     /**
-     * 유저 페이징 시 페이지 크기 값 검증
-     * @param pageSize
-     * @return
+     * 페이지 크기 검증
      */
-    private Integer verifyUsersPageSize(Integer pageSize) {
-        if(pageSize < 1) {
-            return 1;
-        }
-        if(pageSize > USERS_MAX_PAGE_SIZE) {
-            return USERS_MAX_PAGE_SIZE;
-        }
+    private int verifyUsersPageSize(Integer pageSize) {
+        if (pageSize == null || pageSize < 1) return 1;
+        if (pageSize > USERS_MAX_PAGE_SIZE) return USERS_MAX_PAGE_SIZE;
         return pageSize;
     }
 
     /**
-     * 유저 페이징 시 페이지 번호 값 검증
-     * @param startOffset
-     * @return
+     * 페이지 오프셋 검증
      */
-    private Integer verifyUsersStartOffset(Integer startOffset) {
-        if(startOffset < 0) {
-            return 0;
-        }
+    private int verifyUsersStartOffset(Integer startOffset) {
+        if (startOffset == null || startOffset < 0) return 0;
         return startOffset;
     }
 
     /**
-     * List< Users > -> List< UsersListResponseDto >
-     * @param usersList
-     * @return
+     * List<Users> -> List<UsersListResponseDto>
      */
     @Override
     public List<UsersListResponseDto> toUsersListResponseDto(List<Users> usersList) {
-        List<UsersListResponseDto> list = new ArrayList<>();
+        List<UsersListResponseDto> result = new ArrayList<>();
+
         for (Users users : usersList) {
             UsersListResponseDto dto = new UsersListResponseDto();
             dto.setUsersId(users.getUsersId());
             dto.setNickname(users.getNickname());
             dto.setImageKey(users.getImageKey());
-            if(users.getImageKey() != null) {
-                dto.setImageUrl(storageClient.getPublicUrl(users.getImageKey()));
+
+            if (users.getImageKey() != null) {
+                dto.setImageUrl(storageClient.getSignedUrl(users.getImageKey()));
             }
-            list.add(dto);
+
+            result.add(dto);
         }
-        return list;
+        return result;
     }
 
+    /**
+     * 프로필 이미지 업로드
+     */
     @Override
-    public String uploadUsersImage(Integer usersId, MultipartFile file) throws Exception {
-        if(storageClient == null) throw new IllegalStateException("Storage client not initialized");
-        Users users = usersRepository.findByIdIsDeletedFalse(usersId).orElseThrow(() ->
-                new RuntimeException("회원 정보가 존재하지 않습니다."));
-        
-        // 기존 프로필 이미지가 있으면 GCS에서 삭제
+    @Transactional
+    public UsersResponseDto uploadUsersImage(Integer usersId, MultipartFile file) throws Exception {
+
+        Users users = usersRepository.findByIdIsDeletedFalse(usersId)
+                .orElseThrow(() -> new RuntimeException("회원 정보가 존재하지 않습니다."));
+
+        // 기존 이미지 삭제
         String oldImageKey = users.getImageKey();
-        if (oldImageKey != null && !oldImageKey.isEmpty()) {
+        if (oldImageKey != null && !oldImageKey.isBlank()) {
             try {
                 storageClient.delete(oldImageKey);
             } catch (Exception e) {
-                // GCS 삭제 실패 시 로그만 기록하고 계속 진행 (새 이미지 업로드는 진행)
-                System.err.println("Failed to delete old profile image from GCS: " + oldImageKey);
+                // 실패해도 업로드는 진행
                 e.printStackTrace();
             }
         }
-        
+
         // 새 이미지 업로드
-        String imageKey = "users/"+usersId+"/"+ UUID.randomUUID();
+        String imageKey = "users/" + usersId + "/" + UUID.randomUUID();
         storageClient.upload(file.getBytes(), imageKey);
+
+        // DB 반영
         users.updateImageKey(imageKey);
-        usersRepository.save(users);
-        return imageKey;
+
+        return toUsersResponseDto(users);
     }
 
+    /**
+     * 유저 단건 조회
+     */
     @Override
     public UsersResponseDto getUsersById(Integer usersId, Integer targetId) {
-        Users users = usersRepository.findByIdJoinRole(targetId).orElseThrow(() ->
-                new RuntimeException("회원 정보가 존재하지 않습니다."));
+
+        Users users = usersRepository.findByIdJoinRole(targetId)
+                .orElseThrow(() -> new RuntimeException("회원 정보가 존재하지 않습니다."));
+
         UsersResponseDto dto = toUsersResponseDto(users);
-        if(dto.getImageKey() != null) {
-            dto.setImageUrl(storageClient.getPublicUrl(users.getImageKey()));
-        }
-        if(usersId != null && usersId.equals(targetId)) {
+
+        // 자기 자신 조회
+        if (usersId != null && usersId.equals(targetId)) {
             return dto;
         }
-        Integer followCount = followRepository.existsByUsersIdAndTargetId(usersId, targetId).orElse(0);
-        if(followCount != 0) {
-            dto.setIsFollowing(true);
-        } else {
-            dto.setIsFollowing(false);
-        }
+
+        // 팔로우 여부
+        Integer followCount =
+                followRepository.existsByUsersIdAndTargetId(usersId, targetId).orElse(0);
+
+        dto.setIsFollowing(followCount != 0);
         return dto;
     }
 
+    /**
+     * 회원 탈퇴
+     */
     @Override
+    @Transactional
     public void quit(HttpServletRequest request, Integer usersId) throws ServletException {
-        Users users = usersRepository.findById(usersId).orElseThrow(() ->
-                new RuntimeException("회원 정보가 존재하지 않습니다."));
+
+        Users users = usersRepository.findByIdIsDeletedFalse(usersId)
+                .orElseThrow(() -> new RuntimeException("회원 정보가 존재하지 않습니다."));
+
+        // 프로필 이미지 삭제
+        if (users.getImageKey() != null) {
+            try {
+                storageClient.delete(users.getImageKey());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         users.setDelete();
-        usersRepository.save(users);
         request.logout();
     }
 
+    /**
+     * 회원 정보 수정
+     */
     @Override
     @Transactional
-    public void update(HttpServletRequest request, Integer usersId, UsersRequestDto dto) throws ServletException {
-        Users users = usersRepository.findByIdIsDeletedFalse(usersId).orElseThrow(() ->
-                new RuntimeException("회원 정보가 존재하지 않습니다."));
-        if(dto.getNickname() != null) {
+    public void update(HttpServletRequest request, Integer usersId, UsersRequestDto dto)
+            throws ServletException {
+
+        Users users = usersRepository.findByIdIsDeletedFalse(usersId)
+                .orElseThrow(() -> new RuntimeException("회원 정보가 존재하지 않습니다."));
+
+        if (dto.getNickname() != null) {
             users.updateNickname(dto.getNickname());
         }
-        if(dto.getDescription() != null) {
+        if (dto.getDescription() != null) {
             users.updateDescription(dto.getDescription());
         }
-        if(dto.getPassword() != null) {
-            String encodedPassword = bCryptPasswordEncoder.encode(dto.getPassword());
-            users.updatePassword(encodedPassword);
+        if (dto.getPassword() != null) {
+            users.updatePassword(bCryptPasswordEncoder.encode(dto.getPassword()));
         }
     }
 
+    /**
+     * 닉네임 검색
+     */
     @Override
-    public PagingResultDto<UsersListResponseDto> getUsersListByNickname(String nickname, Integer startOffset, Integer pageSize) {
-        pageSize = verifyUsersPageSize(pageSize);
-        startOffset = verifyUsersStartOffset(startOffset);
-        Pageable pageable = PageRequest.of(startOffset, pageSize);
-        Page<Users> usersList = usersRepository.findByNickname(pageable, nickname);
-        List<UsersListResponseDto> result = toUsersListResponseDto(usersList.getContent());
-        return new PagingResultDto<>(result, usersList.getTotalElements());
+    public PagingResultDto<UsersListResponseDto> getUsersListByNickname(
+            String nickname,
+            Integer startOffset,
+            Integer pageSize
+    ) {
+        Pageable pageable = PageRequest.of(
+                verifyUsersStartOffset(startOffset),
+                verifyUsersPageSize(pageSize)
+        );
+
+        Page<Users> usersPage = usersRepository.findByNickname(pageable, nickname);
+
+        return new PagingResultDto<>(
+                toUsersListResponseDto(usersPage.getContent()),
+                usersPage.getTotalElements()
+        );
     }
 }

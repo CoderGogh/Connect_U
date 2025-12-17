@@ -49,8 +49,10 @@ public class UsersController {
 
     @PostMapping(path = "/images", consumes = "multipart/form-data")
     @Operation(summary = "회원 프로필 이미지(1개) 업로드")
-    public ResponseEntity<String> uploadImage(@RequestPart("file") MultipartFile file,
-                                              @CurrentUsersId Integer usersId) throws Exception {
+    public ResponseEntity<UsersResponseDto> uploadImage(
+            @RequestPart("file") MultipartFile file,
+            @CurrentUsersId Integer usersId
+    ) throws Exception {
         return ResponseEntity.ok(usersService.uploadUsersImage(usersId, file));
     }
 }
