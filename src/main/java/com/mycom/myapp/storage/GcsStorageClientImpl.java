@@ -72,10 +72,11 @@ public class GcsStorageClientImpl implements StorageClient {
             throw new StorageException("GCS exists check failed", e);
         }
     }
-    @Override
-    public String getPublicUrl(String key) {
-        return "https://storage.googleapis.com/" + bucketName + "/" + key;
-    }
+    // public url 사용 x
+//    @Override
+//    public String getPublicUrl(String key) {
+//        return "https://storage.googleapis.com/" + bucketName + "/" + key;
+//    }
 
     /**
      * 게시글/프로필 조회 시마다 새로 생성해서 내려줄 Signed URL.
@@ -94,8 +95,9 @@ public class GcsStorageClientImpl implements StorageClient {
             return url.toString();
         } catch (Exception e) {
             log.error("GCS signUrl failed. bucket={}, key={}", bucketName, key, e);
-            // 문제가 생기면 기존 public URL 방식으로 degrade
-            return getPublicUrl(key);
+            // Signed URL 생성 실패 시 null 반환
+            return null;
         }
     }
+
 }

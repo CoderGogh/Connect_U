@@ -54,3 +54,7 @@ src/main/resources/application-*.yml
 
 .postman/
 postman/
+
+# GCP service account keys
+*service-account*.json
+*gcp*.json
