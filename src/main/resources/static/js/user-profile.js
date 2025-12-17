@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
             descEl.textContent = data.description || '-';
             if (avatarEl) {
                 if (data.imageUrl) {
-                    avatarEl.innerHTML = `<img src="${data.imageUrl}" alt="프로필 이미지">`;
+                    avatarEl.innerHTML = `<img src="${data.imageUrl}" alt="프로필 이미지" class="avatar-img-large">`;
                 } else {
                     avatarEl.innerHTML = '';
                 }
