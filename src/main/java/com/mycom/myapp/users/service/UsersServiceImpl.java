@@ -99,30 +99,42 @@ public class UsersServiceImpl implements UsersService {
     }
 
     @Override
-    public String uploadUsersImage(Integer usersId, MultipartFile file) throws Exception {
-        if(storageClient == null) throw new IllegalStateException("Storage client not initialized");
-        Users users = usersRepository.findByIdIsDeletedFalse(usersId).orElseThrow(() ->
-                new RuntimeException("회원 정보가 존재하지 않습니다."));
-        
-        // 기존 프로필 이미지가 있으면 GCS에서 삭제
+    @Transactional
+    public UsersResponseDto uploadUsersImage(Integer usersId, MultipartFile file) throws Exception {
+
+        if (storageClient == null) {
+            throw new IllegalStateException("Storage client not initialized");
+        }
+
+        Users users = usersRepository.findByIdIsDeletedFalse(usersId)
+                .orElseThrow(() -> new RuntimeException("회원 정보가 존재하지 않습니다."));
+
+        // 1. 기존 프로필 이미지가 있으면 GCS에서 삭제
         String oldImageKey = users.getImageKey();
-        if (oldImageKey != null && !oldImageKey.isEmpty()) {
+        if (oldImageKey != null && !oldImageKey.isBlank()) {
             try {
                 storageClient.delete(oldImageKey);
             } catch (Exception e) {
-                // GCS 삭제 실패 시 로그만 기록하고 계속 진행 (새 이미지 업로드는 진행)
+                // GCS 삭제 실패해도 새 이미지 업로드는 진행
                 System.err.println("Failed to delete old profile image from GCS: " + oldImageKey);
                 e.printStackTrace();
             }
         }
-        
-        // 새 이미지 업로드
-        String imageKey = "users/"+usersId+"/"+ UUID.randomUUID();
+
+        // 2. 새 이미지 업로드
+        String imageKey = "users/" + usersId + "/" + UUID.randomUUID();
         storageClient.upload(file.getBytes(), imageKey);
+
+        // 3. DB 업데이트
         users.updateImageKey(imageKey);
-        usersRepository.save(users);
-        return imageKey;
+
+        // 4. 응답 DTO 생성
+        UsersResponseDto responseDto = toUsersResponseDto(users);
+        responseDto.setImageUrl(storageClient.getPublicUrl(imageKey));
+
+        return responseDto;
     }
+
 
     @Override
     public UsersResponseDto getUsersById(Integer usersId, Integer targetId) {
@@ -145,13 +157,29 @@ public class UsersServiceImpl implements UsersService {
     }
 
     @Override
+    @Transactional
     public void quit(HttpServletRequest request, Integer usersId) throws ServletException {
-        Users users = usersRepository.findById(usersId).orElseThrow(() ->
-                new RuntimeException("회원 정보가 존재하지 않습니다."));
+
+        Users users = usersRepository.findByIdIsDeletedFalse(usersId)
+                .orElseThrow(() -> new RuntimeException("회원 정보가 존재하지 않습니다."));
+
+        // 1. 프로필 이미지가 있으면 GCS에서 삭제
+        String imageKey = users.getImageKey();
+        if (imageKey != null && !imageKey.isBlank()) {
+            try {
+                storageClient.delete(imageKey);
+            } catch (Exception e) {
+                // GCS 삭제 실패 시에도 탈퇴는 진행
+                System.err.println("Failed to delete user profile image from GCS: " + imageKey);
+                e.printStackTrace();
+            }
+        }
+        // 2. 회원 soft delete 처리
         users.setDelete();
-        usersRepository.save(users);
+        // 3. 세션 무효화
         request.logout();
     }
+
 
     @Override
     @Transactional

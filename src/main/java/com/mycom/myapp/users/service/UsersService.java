@@ -24,7 +24,7 @@ public interface UsersService {
     void update(HttpServletRequest request, Integer usersId, UsersRequestDto dto) throws ServletException;
     PagingResultDto<UsersListResponseDto> getUsersListByNickname(String nickname, Integer startOffset, Integer pageSize);
     List<UsersListResponseDto> toUsersListResponseDto(List<Users> usersList);
-    String uploadUsersImage(
+    UsersResponseDto uploadUsersImage(
             Integer usersId,
             MultipartFile file
     ) throws Exception;

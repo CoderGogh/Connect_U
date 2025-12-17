@@ -146,9 +146,8 @@ public class PostServiceImpl implements PostService {
 
         postImageRepository.save(image);
 
-        // Public URL 생성
-        String imageUrl = storageClient.getPublicUrl(imageKey);
-
+        // public url을 사용하지 않도록 수정
+        String imageUrl = storageClient.getSignedUrl(imageKey);
 
         return new PostImageDto(
                 image.getId().getSeq(),
@@ -257,8 +256,10 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));
 
-        if (!post.getUsers().getEmail().equals(principal.getName()))
+        // updatePost 와 동일한 로직으로 체크
+        if (principal == null || !post.getUsers().getEmail().equals(principal.getName())) {
             throw new SecurityException("Not authorized");
+        }
 
         // 1. 게시글에 연결된 이미지 조회
         List<PostImage> images = postImageRepository.findByPostAndIsDeletedFalseAndImageKeyIsNotNullOrderByIdSeq(post);
@@ -397,7 +398,7 @@ public class PostServiceImpl implements PostService {
                 .toLowerCase();
     }
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public PostResponse updatePost(
             Integer postId,
             CreatePostRequest request,
@@ -405,6 +406,7 @@ public class PostServiceImpl implements PostService {
             List<MultipartFile> newImages,
             Principal principal
     ) throws Exception {
+
         // 1. 게시글 조회
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));
@@ -414,41 +416,74 @@ public class PostServiceImpl implements PostService {
             throw new SecurityException("Not authorized");
         }
 
-        // 3. 게시글 정보 수정
+        // 3. 게시글 텍스트 정보 수정
         post.setTitle(request.getTitle());
         post.setContent(request.getContent());
-        postRepository.save(post);
 
+        // ===============================
         // 4. 삭제할 이미지 처리
+        // ===============================
         if (deleteImageSeqs != null && !deleteImageSeqs.isEmpty()) {
             for (Integer seq : deleteImageSeqs) {
-                PostImage image = postImageRepository.findByPostAndIdSeq(post, seq)
-                        .orElseThrow(() -> new IllegalArgumentException("Image not found"));
 
-                // GCS 삭제
+                PostImage image = postImageRepository.findByPostAndIdSeq(post, seq)
+                        .orElseThrow(() -> new IllegalArgumentException("Image not found (seq=" + seq + ")"));
+
+                // 4-1. GCS 이미지 삭제
                 try {
                     storageClient.delete(image.getImageKey());
                 } catch (Exception e) {
+                    // GCS 실패 시에도 트랜잭션은 유지 (정책)
                     System.err.println("Failed to delete image from GCS: " + image.getImageKey());
                     e.printStackTrace();
                 }
 
-                // DB soft delete
+                // 4-2. DB soft delete
                 image.softDelete();
+            }
+        }
+
+        // ===============================
+        // 5. 새 이미지 업로드
+        // ===============================
+        if (newImages != null && !newImages.isEmpty()) {
+
+            // 현재 삭제되지 않은 이미지 기준 max seq 계산
+            Integer maxSeq = postImageRepository.findMaxSeqByPost(post);
+            int nextSeq = (maxSeq == null ? -1 : maxSeq);
+
+            for (MultipartFile file : newImages) {
+
+                if (file.isEmpty()) continue;
+
+                nextSeq++;
+                if (nextSeq >= 5) {
+                    throw new IllegalStateException("이미지는 최대 5장까지 업로드할 수 있습니다.");
+                }
+
+                // imageKey 생성
+                String extension = extractExtension(file.getOriginalFilename());
+                String imageKey = "posts/" + postId + "/" + UUID.randomUUID() + "." + extension;
+
+                // GCS 업로드
+                UploadResult uploadResult = storageClient.upload(file.getBytes(), imageKey);
+
+                // DB 저장
+                PostImage image = PostImage.builder()
+                        .post(post)
+                        .seq(nextSeq)
+                        .imageKey(imageKey)
+                        .volume(uploadResult.getSize())
+                        .build();
+
                 postImageRepository.save(image);
             }
         }
 
-        // 5. 새 이미지 업로드
-        if (newImages != null && !newImages.isEmpty()) {
-            for (MultipartFile file : newImages) {
-                uploadPostImage(postId, file, principal);
-            }
-        }
-
-        // 6. DTO 반환
+        // 6. 수정된 게시글 반환
         return toDto(post);
     }
+
 
 
 
