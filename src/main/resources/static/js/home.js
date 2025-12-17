@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sentinel = document.getElementById('feed-sentinel');
     const nicknameEl = document.getElementById('profile-nickname');
     const messageEl = document.getElementById('profile-message');
+    const avatarEl = document.getElementById('profile-avatar');
     const loggedInActions = document.getElementById('profile-actions-logged-in');
     const guestActions = document.getElementById('profile-actions-guest');
     const logoutForm = document.getElementById('logout-form');
@@ -542,6 +543,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (nicknameEl) nicknameEl.textContent = data.nickname || '사용자';
             if (messageEl) messageEl.textContent = data.email || '';
+            if (avatarEl) {
+                if (data.imageUrl) {
+                    avatarEl.innerHTML = `<img src="${data.imageUrl}" alt="프로필 이미지" class="avatar-img">`;
+                } else {
+                    avatarEl.innerHTML = '';
+                }
+            }
             if (loggedInActions) loggedInActions.classList.remove('is-hidden');
             if (guestActions) guestActions.classList.add('is-hidden');
             state.currentUserId = data.usersId;
@@ -549,6 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             if (nicknameEl) nicknameEl.textContent = 'Guest';
             if (messageEl) messageEl.textContent = '프로필 정보는 로그인 후 표시됩니다.';
+            if (avatarEl) avatarEl.innerHTML = '';
             if (loggedInActions) loggedInActions.classList.add('is-hidden');
             if (guestActions) guestActions.classList.remove('is-hidden');
             state.currentUserId = null;

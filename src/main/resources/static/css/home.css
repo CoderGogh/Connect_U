@@ -20,6 +20,7 @@
 .profile-card { display: flex; flex-direction: column; gap: 16px; }
 .profile-header { display: flex; gap: 12px; align-items: center; }
 .avatar { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #d8e3ff, #e0e7ff); border: 1px solid var(--cu-border); }
+.avatar-img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 1px solid var(--cu-border); }
 .nickname { font-weight: 700; font-size: 16px; }
 .muted { color: var(--cu-muted); font-size: 13px; }
 .profile-actions { display: flex; flex-direction: column; gap: 10px; }
