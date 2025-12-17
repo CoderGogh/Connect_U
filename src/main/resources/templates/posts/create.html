@@ -22,7 +22,11 @@
             </div>
             <div class="form-group">
                 <label for="images">이미지 (최대 5장, 5MB 이하)</label>
-                <input type="file" id="images" class="cu-input" accept="image/*" multiple>
+                <div class="image-upload">
+                    <button type="button" class="cu-btn secondary" id="btn-add-image">이미지 추가</button>
+                    <div id="image-inputs"></div>
+                    <div id="selected-images" class="selected-images"></div>
+                </div>
                 <div class="post-hint">이미지 업로드는 선택입니다.</div>
             </div>
             <div id="post-error" class="cu-alert" style="display:none;"></div>
