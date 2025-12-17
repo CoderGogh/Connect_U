@@ -9,4 +9,5 @@ public class UsersListResponseDto {
     private Integer usersId;
     private String nickname;
     private String imageKey;
+    private String imageUrl;
 }

@@ -11,7 +11,7 @@
 <main th:fragment="main">
     <section class="user-panel" th:with="userId=${userId}" th:attr="data-user-id=${userId}">
         <div class="user-header">
-            <div class="avatar placeholder" aria-hidden="true"></div>
+            <div class="avatar placeholder" id="profile-avatar" aria-hidden="true"></div>
             <div>
                 <div class="user-name" id="profile-nickname">닉네임</div>
                 <div class="user-meta" id="profile-email">이메일</div>

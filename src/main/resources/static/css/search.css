@@ -13,6 +13,7 @@
 .post-meta { color: var(--cu-muted); font-size: 13px; margin-bottom: 8px; display: flex; gap: 10px; }
 .user-card { display: flex; gap: 12px; align-items: center; padding: 12px; border: 1px solid var(--cu-border); border-radius: var(--cu-radius-sm); background: #fff; box-shadow: var(--cu-shadow); }
 .user-card .avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #d8e3ff, #e0e7ff); border: 1px solid var(--cu-border); }
+.user-card .avatar-img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 1px solid var(--cu-border); }
 .user-card .nickname { font-weight: 700; font-size: 15px; }
 .empty { text-align: center; color: var(--cu-muted); padding: 16px; border: 1px dashed var(--cu-border); border-radius: var(--cu-radius); background: #fff; }
 .pagination { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }

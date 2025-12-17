@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const nicknameEl = document.getElementById('profile-nickname');
     const emailEl = document.getElementById('profile-email');
     const descEl = document.getElementById('profile-description');
+    const avatarEl = document.getElementById('profile-avatar');
     const followActions = document.getElementById('follow-actions');
     const followBtn = document.getElementById('follow-btn');
     const unfollowBtn = document.getElementById('unfollow-btn');
@@ -71,8 +72,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const item = document.createElement('div');
             item.className = 'follow-item';
             const link = user.usersId != null ? `/users/${user.usersId}` : '#';
+            const avatar = user.imageUrl
+                ? `<img src="${user.imageUrl}" alt="프로필 이미지" class="avatar-img">`
+                : `<div class="avatar placeholder"></div>`;
             item.innerHTML = `
-                <div class="avatar placeholder"></div>
+                ${avatar}
                 <div class="follow-info">
                     <div class="nickname"><a href="${link}">${user.nickname || '사용자'}</a></div>
                 </div>
@@ -159,6 +163,13 @@ document.addEventListener('DOMContentLoaded', () => {
             nicknameEl.textContent = data.nickname || '-';
             emailEl.textContent = data.email || '';
             descEl.textContent = data.description || '-';
+            if (avatarEl) {
+                if (data.imageUrl) {
+                    avatarEl.innerHTML = `<img src="${data.imageUrl}" alt="프로필 이미지">`;
+                } else {
+                    avatarEl.innerHTML = '';
+                }
+            }
             setFollowUi(data.isFollowing);
         } catch (err) {
             nicknameEl.textContent = '정보 없음';

@@ -90,6 +90,9 @@ public class UsersServiceImpl implements UsersService {
             dto.setUsersId(users.getUsersId());
             dto.setNickname(users.getNickname());
             dto.setImageKey(users.getImageKey());
+            if(users.getImageKey() != null) {
+                dto.setImageUrl(storageClient.getPublicUrl(users.getImageKey()));
+            }
             list.add(dto);
         }
         return list;
@@ -126,6 +129,9 @@ public class UsersServiceImpl implements UsersService {
         Users users = usersRepository.findByIdJoinRole(targetId).orElseThrow(() ->
                 new RuntimeException("회원 정보가 존재하지 않습니다."));
         UsersResponseDto dto = toUsersResponseDto(users);
+        if(dto.getImageKey() != null) {
+            dto.setImageUrl(storageClient.getPublicUrl(users.getImageKey()));
+        }
         if(usersId != null && usersId.equals(targetId)) {
             return dto;
         }
