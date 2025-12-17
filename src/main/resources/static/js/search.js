@@ -396,8 +396,11 @@
                 const card = document.createElement('div');
                 card.className = 'user-card';
                 const profileLink = user.usersId != null ? `/users/${user.usersId}` : '#';
+                const avatar = user.imageUrl
+                    ? `<img src="${user.imageUrl}" alt="프로필 이미지" class="avatar-img">`
+                    : `<div class="avatar"></div>`;
                 card.innerHTML = `
-                    <div class="avatar"></div>
+                    ${avatar}
                     <div>
                         <div class="nickname"><a href="${profileLink}">${user.nickname || '사용자'}</a></div>
                         <div class="user-meta">ID: ${user.usersId ?? ''}</div>

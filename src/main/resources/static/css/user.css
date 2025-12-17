@@ -1,6 +1,8 @@
 .user-panel { background: #fff; border: 1px solid var(--cu-border); border-radius: var(--cu-radius); box-shadow: var(--cu-shadow); padding: 20px; max-width: 720px; margin: 0 auto; }
 .user-header { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
 .avatar.placeholder { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #d8e3ff, #e0e7ff); border: 1px solid var(--cu-border); }
+.avatar-img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 1px solid var(--cu-border); }
+.avatar-img-large { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 1px solid var(--cu-border); }
 .user-name { font-weight: 700; font-size: 18px; }
 .user-meta { color: var(--cu-muted); font-size: 13px; }
 .user-body { margin-top: 8px; }
@@ -26,5 +28,6 @@
 .follow-list { display: flex; flex-direction: column; gap: 10px; }
 .follow-item { display: flex; gap: 12px; align-items: center; border: 1px solid var(--cu-border); border-radius: var(--cu-radius-sm); padding: 10px; background: #fafbff; }
 .follow-item .avatar.placeholder { width: 40px; height: 40px; }
+.follow-item .avatar-img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid var(--cu-border); }
 .follow-info .nickname { font-weight: 700; }
 .follow-empty, .follow-loading { text-align: center; color: var(--cu-muted); padding: 12px; }
