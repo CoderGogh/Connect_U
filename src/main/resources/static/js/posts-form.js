@@ -6,11 +6,14 @@
     const postId = panel.dataset.postId;
     const titleInput = document.getElementById('title');
     const contentInput = document.getElementById('content');
-    const imagesInput = document.getElementById('images');
+    const imageInputsContainer = document.getElementById('image-inputs');
     const existingImages = document.getElementById('existing-images');
     const errorBox = document.getElementById('post-error');
     const form = document.getElementById('post-form');
     const submitBtn = document.getElementById('post-submit');
+    const addImageBtn = document.getElementById('btn-add-image');
+    const selectedList = document.getElementById('selected-images');
+    const imageInputs = [];
 
     function showError(msg) {
         if (!errorBox) return;
@@ -59,24 +62,32 @@
         }
     }
 
+    function collectAllFiles() {
+        const all = [];
+        imageInputs.forEach((input) => {
+            if (input.files && input.files.length > 0) {
+                all.push(...Array.from(input.files));
+            }
+        });
+        return all;
+    }
+
     async function uploadImages(newPostId) {
-        const files = imagesInput?.files;
+        const files = collectAllFiles();
         if (!files || !files.length) return;
         const check = window.cu.validateImages(files, 5, 5 * 1024 * 1024);
         if (!check.valid) {
             throw new Error(check.errors.join('\n'));
         }
-        for (const file of check.accepted) {
-            const formData = new FormData();
-            formData.append('file', file);
-            const res = await window.cu.apiFetch(`/api/posts/${newPostId}/images`, {
-                method: 'POST',
-                body: formData,
-            });
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.message || '이미지 업로드에 실패했습니다.');
-            }
+        const formData = new FormData();
+        check.accepted.forEach((file) => formData.append('files', file));
+        const res = await window.cu.apiFetch(`/api/posts/${newPostId}/images`, {
+            method: 'POST',
+            body: formData,
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.message || '이미지 업로드에 실패했습니다.');
         }
     }
 
@@ -141,6 +152,61 @@
     }
     if (submitBtn) {
         submitBtn.addEventListener('click', submitForm);
+    }
+
+    function renderSelectedFiles() {
+        if (!selectedList) return;
+        const files = collectAllFiles();
+        selectedList.innerHTML = '';
+        if (!files || files.length === 0) return;
+        const check = window.cu.validateImages(files, 5, 5 * 1024 * 1024);
+        if (!check.valid) {
+            selectedList.innerHTML = check.errors.map((e) => `<div class="selected-error">${e}</div>`).join('');
+            return;
+        }
+        check.accepted.forEach((file) => {
+            const item = document.createElement('div');
+            item.className = 'selected-item';
+            const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+            item.textContent = `${file.name} (${sizeMb} MB)`;
+            selectedList.appendChild(item);
+        });
+    }
+
+    function handleInputChange(e) {
+        const files = collectAllFiles();
+        const check = window.cu.validateImages(files, 5, 5 * 1024 * 1024);
+        if (!check.valid) {
+            // 현재 input만 초기화해서 이전 선택은 유지
+            const input = e.target;
+            input.value = '';
+            renderSelectedFiles();
+            selectedList.innerHTML = check.errors.map((er) => `<div class="selected-error">${er}</div>`).join('');
+            return;
+        }
+        renderSelectedFiles();
+    }
+
+    function addImageInput() {
+        if (!imageInputsContainer) return;
+        if (imageInputs.length >= 5) {
+            hideError();
+            showError('이미지는 최대 5개까지 업로드할 수 있습니다.');
+            return;
+        }
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.className = 'image-input';
+        input.style.display = 'none';
+        input.addEventListener('change', handleInputChange);
+        imageInputsContainer.appendChild(input);
+        imageInputs.push(input);
+        input.click();
+    }
+
+    if (addImageBtn) {
+        addImageBtn.addEventListener('click', addImageInput);
     }
 
     fetchPost();
