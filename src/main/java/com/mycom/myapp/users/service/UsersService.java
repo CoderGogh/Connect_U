@@ -13,7 +13,13 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface UsersService {
-    UsersResponseDto getUsersById(Integer usersId);
+    /**
+     * 특정 유저의 정보 및 해당 유저 팔로우 여부를 조회
+     * @param usersId 자신의 유저 식별자(필수 아님)
+     * @param targetId 조회 대상 유저 식별자
+     * @return
+     */
+    UsersResponseDto getUsersById(Integer usersId, Integer targetId);
     void quit(HttpServletRequest request, Integer usersId) throws ServletException;
     void update(HttpServletRequest request, Integer usersId, UsersRequestDto dto) throws ServletException;
     PagingResultDto<UsersListResponseDto> getUsersListByNickname(String nickname, Integer startOffset, Integer pageSize);

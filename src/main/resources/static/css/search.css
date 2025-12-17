@@ -1,0 +1,22 @@
+.search-page { background: #fff; border: 1px solid var(--cu-border); border-radius: var(--cu-radius); box-shadow: var(--cu-shadow); padding: 20px; }
+.search-bar { display: flex; gap: 12px; margin-bottom: 16px; }
+.search-bar input[type="text"] { flex: 1; }
+.tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.tab-btn { padding: 10px 14px; border-radius: var(--cu-radius-sm); border: 1px solid var(--cu-border); background: #fff; cursor: pointer; font-weight: 600; color: var(--cu-muted); }
+.tab-btn.active { color: var(--cu-primary-strong); border-color: var(--cu-primary); background: #eef2ff; }
+.tab-panel { display: block; }
+.is-hidden { display: none !important; }
+.post-list, .user-list { display: flex; flex-direction: column; gap: 12px; }
+.post-card { padding: 16px; border: 1px solid var(--cu-border); border-radius: var(--cu-radius); background: #fff; box-shadow: var(--cu-shadow); }
+.post-title { font-weight: 700; font-size: 16px; margin: 0 0 6px; }
+.post-content { color: #1f2937; line-height: 1.5; margin: 0; }
+.post-meta { color: var(--cu-muted); font-size: 13px; margin-bottom: 8px; display: flex; gap: 10px; }
+.user-card { display: flex; gap: 12px; align-items: center; padding: 12px; border: 1px solid var(--cu-border); border-radius: var(--cu-radius-sm); background: #fff; box-shadow: var(--cu-shadow); }
+.user-card .avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #d8e3ff, #e0e7ff); border: 1px solid var(--cu-border); }
+.user-card .nickname { font-weight: 700; font-size: 15px; }
+.empty { text-align: center; color: var(--cu-muted); padding: 16px; border: 1px dashed var(--cu-border); border-radius: var(--cu-radius); background: #fff; }
+.pagination { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
+.pagination button { padding: 8px 12px; border-radius: var(--cu-radius-sm); border: 1px solid var(--cu-border); background: #fff; cursor: pointer; }
+.pagination button.active { background: var(--cu-primary); color: #fff; border-color: var(--cu-primary); }
+.pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+@media (max-width: 720px) { .search-bar { flex-direction: column; } .search-bar button { width: 100%; } }

@@ -34,11 +34,21 @@ public interface PostService {
     void deletePost(Integer id, Principal principal);
 
     /**
-     * 게시글 이미지 업로드
+     * 게시글 이미지 업로드 (단일 파일)
      */
     PostImageDto uploadPostImage(
             Integer postId,
             MultipartFile file,
+            Principal principal
+    ) throws Exception;
+
+    /**
+     * 게시글 이미지 업로드 (여러 파일)
+     * 선택한 순서대로 seq가 할당됩니다.
+     */
+    List<PostImageDto> uploadPostImages(
+            Integer postId,
+            List<MultipartFile> files,
             Principal principal
     ) throws Exception;
 
@@ -48,7 +58,7 @@ public interface PostService {
      * @param pageSize 페이지 크기
      * @return
      */
-    PagingResultDto<PostResponse> getPostsLatest(Integer startOffset, Integer pageSize);
+    PagingResultDto<PostResponse> getPostsLatest(Integer usersId, Integer startOffset, Integer pageSize);
     /**
      * 팔로우 대상이 작성한 게시글 최신순 조회
      * @param usersId 인증 정보의 유저 식별자 값(null 허용)
@@ -64,7 +74,7 @@ public interface PostService {
      * @param pageSize 페이지 크기
      * @return
      */
-    PagingResultDto<PostResponse> getPostsLikesDesc(Integer startOffset, Integer pageSize);
+    PagingResultDto<PostResponse> getPostsLikesDesc(Integer usersId, Integer startOffset, Integer pageSize);
     /**
      * 팔로우 대상이 작성한 게시글 좋아요순 조회
      * @param usersId 인증 정보의 유저 식별자 값(null 허용)
@@ -90,5 +100,5 @@ public interface PostService {
             List<MultipartFile> newImages,
             Principal principal
     ) throws Exception;
-    PagingResultDto<PostResponse> getPostListByKeyword(String keyword, Integer startOffset, Integer pageSize);
+    PagingResultDto<PostResponse> getPostListByKeyword(Integer usersId, String keyword, Integer startOffset, Integer pageSize);
 }

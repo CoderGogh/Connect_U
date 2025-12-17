@@ -22,14 +22,15 @@ public class UsersController {
 
     @GetMapping("/id/{usersId}")
     @Operation(summary = "식별자로 회원 세부 정보 조회")
-    public ResponseEntity<UsersResponseDto> getUsersById(@PathVariable Integer usersId) {
-        return ResponseEntity.ok(usersService.getUsersById(usersId));
+    public ResponseEntity<UsersResponseDto> getUsersById(@CurrentUsersId(required = false) Integer myUsersId, @PathVariable("usersId") Integer usersId
+) {
+        return ResponseEntity.ok(usersService.getUsersById(myUsersId, usersId));
     }
 
     @GetMapping("/my-info")
     @Operation(summary = "자기 자신의 회원 세부 정보 조회")
     public ResponseEntity<UsersResponseDto> getMyInfo(@CurrentUsersId Integer usersId) {
-        return ResponseEntity.ok(usersService.getUsersById(usersId));
+        return ResponseEntity.ok(usersService.getUsersById(usersId, usersId));
     }
 
     @DeleteMapping

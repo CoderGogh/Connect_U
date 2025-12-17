@@ -73,7 +73,7 @@ public class PostController {
         summary = "게시글 삭제",
         description = "게시글 작성자 본인만 게시글을 삭제할 수 있습니다. (Soft Delete)"
     )
-    public ResponseEntity<Void> deletePost(@PathVariable Integer id, Principal principal) {
+    public ResponseEntity<Void> deletePost(@PathVariable("id") Integer id, Principal principal) {
         postService.deletePost(id, principal);
         return ResponseEntity.noContent().build();
     }
@@ -88,10 +88,11 @@ public class PostController {
             """
     )
     public ResponseEntity<PagingResultDto<PostResponse>> getActivePostsLatest(
+            @CurrentUsersId(required = false) Integer usersId,
             @RequestParam(value = "page", defaultValue = "0") Integer startOffset,
             @RequestParam(value = "size", defaultValue = "1") Integer pageSize
     ) {
-        return ResponseEntity.ok(postService.getPostsLatest(startOffset, pageSize));
+        return ResponseEntity.ok(postService.getPostsLatest(usersId, startOffset, pageSize));
     }
 
     @GetMapping("/following-latest")
@@ -116,10 +117,11 @@ public class PostController {
         description = "게시글을 좋아요 개수 기준 내림차순으로 조회합니다."
     )
     public ResponseEntity<PagingResultDto<PostResponse>> getActivePostLikeCountDesc(
+            @CurrentUsersId(required = false) Integer usersId,
             @RequestParam(value = "page", defaultValue = "0") Integer startOffset,
             @RequestParam(value = "size", defaultValue = "1") Integer pageSize
     ) {
-        return ResponseEntity.ok(postService.getPostsLikesDesc(startOffset, pageSize));
+        return ResponseEntity.ok(postService.getPostsLikesDesc(usersId, startOffset, pageSize));
     }
 
     @GetMapping("/following-likes")
@@ -140,16 +142,22 @@ public class PostController {
         summary = "게시글 이미지 업로드",
         description = """
             게시글에 이미지를 업로드합니다.
-            multipart/form-data 형식으로 파일을 전달해야 합니다.
+            multipart/form-data 형식으로 'files' key로 파일을 전달해야 합니다.
+            여러 파일을 한 번에 업로드할 수 있으며, 선택한 순서대로 seq가 할당됩니다.
+            
+            Postman 사용법:
+            - Body 탭에서 form-data 선택
+            - Key: 'files' (Type: File)
+            - Value: 파일 선택 창에서 여러 파일을 한 번에 선택 (Ctrl+클릭 또는 Cmd+클릭)
             """
     )
-    public ResponseEntity<PostImageDto> uploadImage(
+    public ResponseEntity<List<PostImageDto>> uploadImages(
             @PathVariable("id") Integer postId,
-            @RequestPart("file") MultipartFile file,
+            @RequestPart("files") List<MultipartFile> files,
             Principal principal
     ) throws Exception {
-        PostImageDto dto = postService.uploadPostImage(postId, file, principal);
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+        List<PostImageDto> dtos = postService.uploadPostImages(postId, files, principal);
+        return ResponseEntity.status(HttpStatus.CREATED).body(dtos);
     }
 
     @PutMapping("/{id}")

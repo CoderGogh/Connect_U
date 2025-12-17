@@ -8,14 +8,15 @@ import com.mycom.myapp.post.dto.PostResponse;
 import com.mycom.myapp.post.entity.Post;
 import com.mycom.myapp.post.image.entity.PostImage;
 import com.mycom.myapp.post.image.repository.PostImageRepository;
+import com.mycom.myapp.post.like.repository.PostLikeRepository;
 import com.mycom.myapp.post.repository.PostRepository;
 import com.mycom.myapp.users.entity.Users;
 import com.mycom.myapp.users.repository.UsersRepository;
 import lombok.RequiredArgsConstructor;
 import com.mycom.myapp.storage.StorageClient;
 import com.mycom.myapp.storage.UploadResult;
-import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -35,6 +37,7 @@ public class PostServiceImpl implements PostService {
     private final UsersRepository usersRepository;
     private final FollowRepository followRepository;
     private final StorageClient storageClient;
+    private final PostLikeRepository postLikeRepository;
 
     /**
      * 게시글 페이징 시 페이지 크기 값 검증
@@ -97,7 +100,7 @@ public class PostServiceImpl implements PostService {
 
     // ================= 이미지 업로드 =================
     @Override
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public PostImageDto uploadPostImage(
             Integer postId,
             MultipartFile file,
@@ -152,6 +155,84 @@ public class PostServiceImpl implements PostService {
                 imageKey,
                 imageUrl
         );
+    }
+
+    // ================= 여러 이미지 업로드 =================
+    @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public List<PostImageDto> uploadPostImages(
+            Integer postId,
+            List<MultipartFile> files,
+            Principal principal
+    ) throws Exception {
+        if (files == null || files.isEmpty()) {
+            throw new IllegalArgumentException("이미지 파일이 비어 있습니다.");
+        }
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+
+        // 권한 체크
+        if (principal != null) {
+            if (!principal.getName().equals(post.getUsers().getEmail())) {
+                throw new SecurityException("Not authorized");
+            }
+        }
+
+        // 현재 최대 seq 조회 (삭제되지 않은 이미지만 고려)
+        Integer maxSeq = postImageRepository.findMaxSeqByPost(post);
+        int nextSeq = (maxSeq == null ? -1 : maxSeq);
+
+        // 전체 이미지 개수 제한 확인
+        int currentImageCount = (maxSeq == null ? 0 : maxSeq + 1);
+        if (currentImageCount + files.size() > 5) {
+            throw new IllegalStateException(
+                    String.format("이미지는 최대 5장까지 업로드할 수 있습니다. 현재 %d장, 추가하려는 이미지 %d장",
+                            currentImageCount, files.size())
+            );
+        }
+
+        List<PostImageDto> results = new java.util.ArrayList<>();
+
+        // 각 파일을 순서대로 처리 (선택한 순서대로 seq 할당)
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) {
+                continue; // 빈 파일은 건너뛰기
+            }
+
+            nextSeq++;
+            if (nextSeq >= 5) {
+                throw new IllegalStateException("이미지는 최대 5장까지 업로드할 수 있습니다.");
+            }
+
+            // imageKey 생성
+            String extension = extractExtension(file.getOriginalFilename());
+            String imageKey = "posts/" + postId + "/" + UUID.randomUUID() + "." + extension;
+
+            // GCS 업로드
+            UploadResult uploadResult = storageClient.upload(file.getBytes(), imageKey);
+
+            // DB 저장
+            PostImage image = PostImage.builder()
+                    .post(post)
+                    .seq(nextSeq)
+                    .imageKey(imageKey)
+                    .volume(uploadResult.getSize())
+                    .build();
+
+            postImageRepository.save(image);
+
+            // Signed URL 생성
+            String imageUrl = storageClient.getSignedUrl(imageKey);
+
+            results.add(new PostImageDto(
+                    image.getId().getSeq(),
+                    imageKey,
+                    imageUrl
+            ));
+        }
+
+        return results;
     }
 
 
@@ -224,9 +305,9 @@ public class PostServiceImpl implements PostService {
                 .map(img -> new PostImageDto(
                         img.getId().getSeq(),
                         img.getImageKey(),
-                        storageClient.getPublicUrl(img.getImageKey())
+                        // 조회 시마다 GCS Signed URL(24h TTL)을 생성해서 내려준다.
+                        storageClient.getSignedUrl(img.getImageKey())
                 ))
-
                 .toList();
 
         dto.setImages(images);
@@ -240,31 +321,51 @@ public class PostServiceImpl implements PostService {
         Pageable pageable = PageRequest.of(startOffset, pageSize);
 
         List<Integer> followingUsersIdList = followRepository.findAllByUserSrc(usersId);
+        followingUsersIdList.add(usersId); // 자신이 작성한 게시글도 조회
+
         Page<Post> followingPosts = postRepository.findActiveFollwingPostsOrderByCreatedAtDesc(pageable, followingUsersIdList);
+        Set<Integer> likedPostIdSet = postLikeRepository.findLikedPostIdList(followingPosts.getContent().stream().map(Post::getId).toList(), usersId);
         List<PostResponse> followingPostslist = followingPosts.stream().map(this::toDto).toList();
+        for(PostResponse p : followingPostslist){
+            if(likedPostIdSet.contains(p.getId())) {
+                p.setIsLiked(true);
+            }
+        }
 
         return new PagingResultDto<>(followingPostslist, followingPosts.getTotalElements());
     }
 
     @Override
-    public PagingResultDto<PostResponse> getPostsLatest(Integer startOffset, Integer pageSize) {
+    public PagingResultDto<PostResponse> getPostsLatest(Integer usersId, Integer startOffset, Integer pageSize) {
         pageSize = verifyPostsPageSize(pageSize);
         startOffset = verifyPostsStartOffset(startOffset);
         Pageable pageable = PageRequest.of(startOffset, pageSize);
 
         // 비로그인 사용자의 경우 전체 최신순 조회만 제공
         Page<Post> posts = postRepository.findActiveOrderByCreatedAtDesc(pageable);
+        Set<Integer> likedPostIdSet = postLikeRepository.findLikedPostIdList(posts.getContent().stream().map(Post::getId).toList(), usersId);
         List<PostResponse> list = posts.stream().map(this::toDto).toList();
+        for(PostResponse p : list){
+            if(likedPostIdSet.contains(p.getId())) {
+                p.setIsLiked(true);
+            }
+        }
         return new PagingResultDto<>(list, posts.getTotalElements());
     }
 
     @Override
-    public PagingResultDto<PostResponse> getPostsLikesDesc(Integer startOffset, Integer pageSize) {
+    public PagingResultDto<PostResponse> getPostsLikesDesc(Integer usersId, Integer startOffset, Integer pageSize) {
         pageSize = verifyPostsPageSize(pageSize);
         startOffset = verifyPostsStartOffset(startOffset);
         Pageable pageable = PageRequest.of(startOffset, pageSize);
         Page<Post> posts = postRepository.findActiveOrderByLikeCountDesc(pageable);
+        Set<Integer> likedPostIdSet = postLikeRepository.findLikedPostIdList(posts.getContent().stream().map(Post::getId).toList(), usersId);
         List<PostResponse> list = posts.stream().map(this::toDto).toList();
+        for(PostResponse p : list){
+            if(likedPostIdSet.contains(p.getId())) {
+                p.setIsLiked(true);
+            }
+        }
         return new PagingResultDto<>(list, posts.getTotalElements());
     }
 
@@ -274,8 +375,16 @@ public class PostServiceImpl implements PostService {
         startOffset = verifyPostsStartOffset(startOffset);
         Pageable pageable = PageRequest.of(startOffset, pageSize);
         List<Integer> followingUsersIdList = followRepository.findAllByUserSrc(usersId);
+        followingUsersIdList.add(usersId); // 자신이 작성한 게시글도 조회
+
         Page<Post> followingPosts = postRepository.findActiveFollowingPostsOrderByLikeCountDesc(pageable, followingUsersIdList);
+        Set<Integer> likedPostIdSet = postLikeRepository.findLikedPostIdList(followingPosts.getContent().stream().map(Post::getId).toList(), usersId);
         List<PostResponse> followingPostslist = followingPosts.stream().map(this::toDto).toList();
+        for(PostResponse p : followingPostslist){
+            if(likedPostIdSet.contains(p.getId())) {
+                p.setIsLiked(true);
+            }
+        }
         return new PagingResultDto<>(followingPostslist, followingPosts.getTotalElements());
     }
 
@@ -344,13 +453,19 @@ public class PostServiceImpl implements PostService {
 
 
     @Override
-    public PagingResultDto<PostResponse> getPostListByKeyword(String keyword, Integer startOffset, Integer pageSize) {
+    public PagingResultDto<PostResponse> getPostListByKeyword(Integer usersId, String keyword, Integer startOffset, Integer pageSize) {
         pageSize = verifyPostsPageSize(pageSize);
         startOffset = verifyPostsStartOffset(startOffset);
         Pageable pageable = PageRequest.of(startOffset, pageSize);
 
         Page<Post> postPage = postRepository.searchByTitleOrContent(pageable, keyword);
+        Set<Integer> likedPostIdSet = postLikeRepository.findLikedPostIdList(postPage.getContent().stream().map(Post::getId).toList(), usersId);
         List<PostResponse> list = postPage.stream().map(this::toDto).toList();
+        for(PostResponse p : list){
+            if(likedPostIdSet.contains(p.getId())) {
+                p.setIsLiked(true);
+            }
+        }
         return new PagingResultDto<>(list, postPage.getTotalElements());
     }
 }

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: base(~{::title}, '', ~{::main}, ~{::extraHead}, ~{::extraScripts}, ~{::topActions})}">
+<head>
+    <title>사용자 프로필 | Connect U</title>
+    <th:block th:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/user.css}">
+    </th:block>
+</head>
+<body>
+<main th:fragment="main">
+    <section class="user-panel" th:with="userId=${userId}" th:attr="data-user-id=${userId}">
+        <div class="user-header">
+            <div class="avatar placeholder" aria-hidden="true"></div>
+            <div>
+                <div class="user-name" id="profile-nickname">닉네임</div>
+                <div class="user-meta" id="profile-email">이메일</div>
+            </div>
+        </div>
+        <div class="user-body">
+            <dl class="user-detail">
+                <dt>소개</dt>
+                <dd id="profile-description">-</dd>
+            </dl>
+            <div class="user-actions" id="follow-actions" style="display:none;">
+                <button class="cu-btn" id="follow-btn" type="button">팔로우</button>
+                <button class="cu-btn secondary" id="unfollow-btn" type="button" style="display:none;">언팔로우</button>
+                <button class="cu-btn secondary" id="btn-user-followers" type="button">팔로워 목록</button>
+                <button class="cu-btn secondary" id="btn-user-followings" type="button">팔로잉 목록</button>
+            </div>
+        </div>
+    </section>
+
+    <div class="cu-modal" id="follow-modal" aria-hidden="true">
+        <div class="cu-modal-overlay"></div>
+        <div class="cu-modal-content" role="dialog" aria-modal="true">
+            <div class="cu-modal-header">
+                <h2 class="cu-modal-title" id="follow-modal-title">목록</h2>
+                <button class="cu-modal-close" id="follow-modal-close" type="button">✕</button>
+            </div>
+            <div class="cu-modal-body">
+                <div class="follow-list" id="follow-list"></div>
+                <div class="follow-empty" id="follow-empty" style="display:none;">목록이 없습니다.</div>
+                <div class="follow-loading" id="follow-loading" style="display:none;">불러오는 중...</div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<th:block th:fragment="extraScripts">
+    <script th:src="@{/js/user-profile.js}"></script>
+</th:block>
+</body>
+</html>

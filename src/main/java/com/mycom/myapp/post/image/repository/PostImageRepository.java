@@ -24,7 +24,8 @@ public interface PostImageRepository extends JpaRepository<PostImage, PostImageK
     List<String> findImageKeysByPost(@Param("postEntity") Post postEntity);
 
     // 현재 post에 대해 최대 seq 값을 조회 (없으면 -1 반환)
-    @Query("SELECT COALESCE(MAX(p.id.seq), -1) FROM PostImage p WHERE p.post = :postEntity")
+    // 삭제되지 않은 이미지만 고려하여 seq 계산
+    @Query("SELECT COALESCE(MAX(p.id.seq), -1) FROM PostImage p WHERE p.post = :postEntity AND p.isDeleted = false")
     Integer findMaxSeqByPost(@Param("postEntity") Post postEntity);
 
     // 논리 삭제 처리(Repository 책임 범위)

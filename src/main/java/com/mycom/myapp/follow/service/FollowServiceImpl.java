@@ -76,8 +76,12 @@ public class FollowServiceImpl implements FollowService {
         startOffset = verifyFollowStartOffset(startOffset);
         Pageable pageable = PageRequest.of(startOffset, pageSize);
         Page<Follow> followers = followRepository.findFollowersByUsersIdDest(pageable, usersId);
+        // userDest는 팔로우를 받는 사람(나), userSrc는 팔로우를 하는 사람(나를 팔로우하는 사람)
         List<UsersListResponseDto> result = usersService.toUsersListResponseDto(
-                followers.stream().map(Follow::getUserSrc).toList()
+                followers.stream()
+                        .map(Follow::getUserSrc)
+                        .distinct()
+                        .toList()
         );
         return new PagingResultDto<>(result, followers.getTotalElements());
     }
@@ -88,8 +92,13 @@ public class FollowServiceImpl implements FollowService {
         startOffset = verifyFollowStartOffset(startOffset);
         Pageable pageable = PageRequest.of(startOffset, pageSize);
         Page<Follow> followings = followRepository.findFollowingsByUsersIdSrc(pageable, usersId);
+        // userSrc는 팔로우를 하는 사람(나), userDest는 팔로우를 받는 사람(팔로우 대상)
+        // 따라서 내가 팔로우하는 사람 목록을 조회하려면 userDest를 사용해야 함
         List<UsersListResponseDto> result = usersService.toUsersListResponseDto(
-                followings.stream().map(Follow::getUserSrc).toList()
+                followings.stream()
+                        .map(Follow::getUserDest)
+                        .distinct()
+                        .toList()
         );
         return new PagingResultDto<>(result, followings.getTotalElements());
     }

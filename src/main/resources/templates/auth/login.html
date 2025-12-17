@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: base(~{::title}, 'auth-body', ~{::main}, ~{::extraHead}, ~{::extraScripts}, ~{::topActions})}">
+<head>
+    <title>로그인 | Connect U</title>
+    <th:block th:fragment="extraHead">
+        <link rel="stylesheet" th:href="@{/css/login.css}">
+    </th:block>
+</head>
+<body>
+<th:block th:fragment="topActions">
+    <a class="cu-btn secondary" th:href="@{/join}">회원가입</a>
+</th:block>
+
+<main th:fragment="main">
+    <div class="login-container">
+        <div class="login-header">
+            <h2>Connect U</h2>
+            <p>계정을 사용해 로그인하세요.</p>
+        </div>
+
+        <div id="error-box" class="alert-box" role="alert"></div>
+
+        <form id="login-form" novalidate>
+            <div class="form-group">
+                <label for="email">이메일</label>
+                <input type="email" id="email" class="form-control" placeholder="name@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" class="form-control" placeholder="비밀번호를 입력하세요" required>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-login">로그인</button>
+            </div>
+        </form>
+
+        <div class="footer-links">
+            계정이 없으신가요? <a th:href="@{/join}">회원가입 하기</a>
+        </div>
+    </div>
+</main>
+
+<th:block th:fragment="extraScripts">
+    <script th:src="@{/js/login.js}"></script>
+</th:block>
+</body>
+</html>

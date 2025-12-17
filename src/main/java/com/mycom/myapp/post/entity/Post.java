@@ -1,10 +1,14 @@
 package com.mycom.myapp.post.entity;
 
+import com.mycom.myapp.post.like.entity.PostLike;
 import com.mycom.myapp.users.entity.Users;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "post")
 @Getter

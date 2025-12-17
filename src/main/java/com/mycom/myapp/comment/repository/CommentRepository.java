@@ -32,6 +32,9 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
 	
 	List<Comment> findByParentCommentIdIn(List<Integer> parentIds);
 	
+	List<Comment> findByPostEntityOrderByCreatedAtAsc(Post postEntity);
+
+	
 	    @Query("""
 		    select c
 		    from Comment c

@@ -1,10 +1,18 @@
 package com.mycom.myapp.storage;
 
-import com.google.cloud.storage.*;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.BlobId;
+import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.HttpMethod;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
+
+import java.net.URL;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
@@ -67,5 +75,27 @@ public class GcsStorageClientImpl implements StorageClient {
     @Override
     public String getPublicUrl(String key) {
         return "https://storage.googleapis.com/" + bucketName + "/" + key;
+    }
+
+    /**
+     * 게시글/프로필 조회 시마다 새로 생성해서 내려줄 Signed URL.
+     * 여기서는 TTL을 24시간으로 고정한다 (Option A).
+     */
+    @Override
+    public String getSignedUrl(String key) {
+        try {
+            BlobInfo blobInfo = BlobInfo.newBuilder(BlobId.of(bucketName, key)).build();
+            URL url = storage.signUrl(
+                    blobInfo,
+                    24, TimeUnit.HOURS,
+                    Storage.SignUrlOption.httpMethod(HttpMethod.GET),
+                    Storage.SignUrlOption.withV4Signature()
+            );
+            return url.toString();
+        } catch (Exception e) {
+            log.error("GCS signUrl failed. bucket={}, key={}", bucketName, key, e);
+            // 문제가 생기면 기존 public URL 방식으로 degrade
+            return getPublicUrl(key);
+        }
     }
 }
